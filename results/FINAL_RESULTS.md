@@ -1,7 +1,8 @@
 # FINAL RESULTS — Full Result Dashboard
 
 작성일: 2026-08-03  
-최종 후보: **B2 Target-routed** — Valence는 frozen Context-only, Arousal과 Cognitive load는 target-specific direct Context+PPG, 개인화는 선택적 EB output offset.
+최종 후보: **B2 Target-routed**
+— Valence는 frozen Context-only, Arousal과 Cognitive load는 target-specific direct Context+PPG, 개인화는 선택적 EB output offset.
 
 > 이 파일은 결과 확인용 상세 정본이다. 실제 논문에 붙일 압축 표와 문단은 별도 파일 `PAPER_RESULTS_SECTION.tex`에 둔다.
 
