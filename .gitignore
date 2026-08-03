@@ -30,3 +30,11 @@ dump_*.txt
 *.pyc
 .venv/
 venv*/
+
+# --- internal working docs (NOT for the public repo) ---
+# paper analysis, section rewrites, verification, KO drafts, planning notes.
+# These stay local for authoring; they are not part of the published pipeline.
+paper/
+*_internal.md
+_final_*.jsonl
+_*_test.*

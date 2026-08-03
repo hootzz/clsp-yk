@@ -1,7 +1,7 @@
 model,target,ccc_mean,ccc_std,accuracy,balanced_accuracy,macro_f1,binary_threshold,n_seeds,split,run,note
-PPG_only,valence,0.090,0.036,0.615,0.534,0.506,0.625,3,participant_holdout,base_lineage_zrecording_lag4_p10s,diagnostic baseline (different run than B0/B1/B2)
-PPG_only,arousal,0.072,0.115,0.635,0.531,0.526,0.625,3,participant_holdout,base_lineage_zrecording_lag4_p10s,diagnostic baseline (different run than B0/B1/B2)
-PPG_only,cognitive_load,0.153,0.179,0.852,0.500,0.459,0.625,3,participant_holdout,base_lineage_zrecording_lag4_p10s,diagnostic baseline (different run than B0/B1/B2)
+PPG_only,valence,0.076,0.010,,,,0.625,3,participant_holdout,matched_row_nsegment,matched-row PPG-only (same 3270 eval rows as B0/B1/B2); class metrics not reported
+PPG_only,arousal,0.063,0.080,,,,0.625,3,participant_holdout,matched_row_nsegment,matched-row PPG-only (same 3270 eval rows as B0/B1/B2); class metrics not reported
+PPG_only,cognitive_load,0.151,0.140,,,,0.625,3,participant_holdout,matched_row_nsegment,matched-row PPG-only (same 3270 eval rows as B0/B1/B2); class metrics not reported
 B0_context_only,valence,0.509,0.029,0.704,0.686,0.671,0.625,3,participant_holdout,target_routed_title_final,context-only for all targets
 B0_context_only,arousal,0.501,0.024,0.746,0.708,0.687,0.625,3,participant_holdout,target_routed_title_final,context-only for all targets
 B0_context_only,cognitive_load,0.647,0.093,0.778,0.850,0.680,0.625,3,participant_holdout,target_routed_title_final,context-only for all targets

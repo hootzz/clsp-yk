@@ -118,13 +118,28 @@ Run the plumbing test (no model needed):
 python -m unittest deployment.runtime_pipeline.tests.test_smoke -v
 ```
 
-Real inference needs a trained checkpoint and the PaPaGEI-P weights (both kept
-private): pass them to `finalize.py` via `--ckpt` and `--papagei-ckpt`. See
-`deployment/runtime_pipeline/README.md`.
+**Running the target-routed model.** The final model uses the original-7 context
+schema and the routed heads, so it is served by a small back-end that swaps into
+the existing merge front-end without editing any original file:
 
-> Production note: connecting a trained checkpoint to the runtime still requires
-> a text-schema migration and a watch-domain (2 s overlapping window) check; this
-> repository publishes the pipeline, not a production-connected build.
+```bash
+python deployment/runtime_pipeline/run_target_routed_deploy.py \
+    --in datastream.jsonl --out final_datastream.jsonl \
+    --ckpt <target_routed full.pt> --papagei-ckpt <papagei_p.pt>
+```
+
+- `context_text_original7.py` — renders the original-7 context from `user_state`.
+- `finalize_target_routed.py` — loads the model with `fusion_mode="target_routed_direct"`
+  (the plain `finalize.py` cannot load this checkpoint).
+- `run_target_routed_deploy.py` — merge output → render → PaPaGEI-P → model → V/A/C.
+
+Valence is a context-only route: its output is invariant to PPG (verified at load
+time). Checkpoints and PaPaGEI-P weights are kept private.
+
+> Production note: the domain gap between finger/contact training PPG and the
+> Galaxy wrist stream still needs deployment-time calibration, and few-shot (K>0)
+> personalization is applied as an optional output offset. This repository
+> publishes the pipeline and a single-record verification, not a calibrated build.
 
 ---
 
