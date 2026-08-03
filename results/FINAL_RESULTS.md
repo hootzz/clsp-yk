@@ -4,8 +4,6 @@
 최종 후보: **B2 Target-routed**
 — Valence는 frozen Context-only, Arousal과 Cognitive load는 target-specific direct Context+PPG, 개인화는 선택적 EB output offset.
 
-> 이 파일은 결과 확인용 상세 정본이다. 실제 논문에 붙일 압축 표와 문단은 별도 파일 `PAPER_RESULTS_SECTION.tex`에 둔다.
-
 ## 0. 평가 조건과 baseline
 
 | 표기 | 입력·구조 | 역할 |
@@ -231,6 +229,3 @@ M0와 M2는 각 참가자의 동일 query row에서 평가한다. support는 첫
 주 개인화 결과는 **EEVR Arousal K=4의 continuous CCC lift**다. 같은 조건의 Accuracy·BA·Macro-F1은 개선되지 않았으므로 개인화가 모든 지표나 타깃을 높인다고 주장하지 않는다. CASE V의 유의한 수치는 +0.003으로 매우 작고 분류 지표가 감소했다.
 
 ---
-| External paired CI | `target_routed_title_final/reports/b0_b1_b2/external_zero_shot/participant_bootstrap.csv` |
-| EB absolute metrics | `target_routed_title_final/reports/b0_b1_b2/metrics_summary.csv` |
-| EB paired CI | `target_routed_title_final/reports/b0_b1_b2/participant_bootstrap_ri_lift.csv` |
