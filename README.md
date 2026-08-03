@@ -1,9 +1,8 @@
 # MEM-HQS — Cognitive-Emotional Estimator (target-routed)
 
-웨어러블 **PPG + 상황 맥락 텍스트**로 **Valence / Arousal / Cognitive load**를 추정한다.
-이 폴더 하나로 학습·배포가 끝난다. 
+웨어러블 **PPG + 상황 맥락 텍스트**로 **Valence / Arousal / Cognitive load**를 추정.
 
-필요한 것: **PaPaGEI 모델 · 학습 체크포인트 · (선택) GPT 키**만 넣으면 된다.
+필요한 것: **PaPaGEI 모델 · 학습 체크포인트 · (선택) GPT 키**
 
 구조: **Valence = 맥락만**, **Arousal · Cognitive load = 맥락 + PPG** (target-routed).
 
@@ -48,7 +47,7 @@ OPENAI_API_KEY=sk-...
 
 ---
 
-## 배포: 실제 V/A/C 뽑기
+## 배포: V/A/C 추론
 
 흐름 = **수집 → 병합 → 추론**
 

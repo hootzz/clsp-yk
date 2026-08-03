@@ -39,3 +39,6 @@ paper/
 *_internal.md
 _final_*.jsonl
 _*_test.*
+
+# --- local evidence copies (편의용, 공개 안 함) ---
+results/_evidence/

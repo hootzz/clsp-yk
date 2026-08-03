@@ -1,6 +1,6 @@
 # scripts/ — 원 연구 실행 스크립트 (참고용)
 
-target-routed 모델을 학습·평가한 **원 연구 오케스트레이션** 코드. 재현·감사용 참고.
+target-routed 모델을 학습·평가한 **원 연구 오케스트레이션** 코드. 
 
 - `run/` — 학습 진입: `run_target_routed_final.py`(B0/B1/B2 학습+평가), `run_b1_uniform_followup.py`.
 - `evaluate/` — 평가: `evaluate_target_routed_final.py`, `evaluate_b0_b1_b2*.py`, `evaluate_external_zero_shot.py`.

@@ -1,9 +1,5 @@
 # Target-routed title-context final candidate
 
-## Status
-
-This directory is an isolated new hypothesis. It does not overwrite the prior controlled-fusion result and it must not be described as an already confirmed model before its held-out evaluation finishes.
-
 ## Population architecture
 
 | Target | Population predictor | PPG path | Inference-time personalization |
