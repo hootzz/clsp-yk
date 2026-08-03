@@ -1,7 +1,9 @@
 # MEM-HQS — Cognitive-Emotional Estimator (target-routed)
 
 웨어러블 **PPG + 상황 맥락 텍스트**로 **Valence / Arousal / Cognitive load**를 추정한다.
-이 폴더 하나로 학습·배포가 끝난다. 사용자는 **PaPaGEI 모델 · 학습 체크포인트 · (선택) GPT 키**만 넣으면 된다.
+이 폴더 하나로 학습·배포가 끝난다. 
+
+필요한 것: **PaPaGEI 모델 · 학습 체크포인트 · (선택) GPT 키**만 넣으면 된다.
 
 구조: **Valence = 맥락만**, **Arousal · Cognitive load = 맥락 + PPG** (target-routed).
 
@@ -10,8 +12,8 @@
 ## 폴더 구성
 
 - `training/` — 모델·학습 코드
-  - `core/` : `model.py`, `train.py`, `papagei_embed.py` 등 (모델 정의·임베딩)
-  - `target_routed/` : 학습·평가 실행 스크립트
+  - `core/` : `model.py`, `train.py`, `papagei_embed.py` 등 (**모델 정의·학습 방법** = 실제 재사용 코드)
+  - `target_routed/` : `TARGET_ROUTED_ARCHITECTURE.md` + `plan/`(설정) + `scripts/`(원 실행 스크립트, 참고용)
 - `deployment/` — 배포 (수집 → 병합 → 추론)
   - `digital_behavior/` : PC(ActivityWatch)·Android 디지털 행동 수집기
   - `ppg/` : Galaxy PPG 수신·전처리·PaPaGEI 임베딩
@@ -76,14 +78,17 @@ python deployment/runtime_pipeline/run_target_routed_deploy.py \
 
 ---
 
-## 학습: 모델 재학습 (본인 데이터 필요)
+## 학습: 모델·방법 (참고)
+
+- **모델·학습 방법 코드** = `training/core/` (`model.py`, `train.py`, `dataset.py`, `losses.py`). 재사용 가능.
+- **실험 설정** = `training/target_routed/plan/*.yaml` + `TARGET_ROUTED_ARCHITECTURE.md`.
+- **원 실행 스크립트** = `training/target_routed/scripts/` (예: `run_target_routed_final.py`).
 
 ```bash
-python training/target_routed/run_target_routed_final.py all 0
+python training/target_routed/scripts/run_target_routed_final.py all 0
 ```
 
-- 학습 데이터(CASE/EEVR/MAUS)는 비공개다. 스크립트/플랜의 데이터 경로를 본인 데이터로 지정해야 실행된다.
-- 코드만으로 구조·방법은 그대로 재현된다.
+- ⚠️ 이 scripts는 **원 연구 데이터·경로에 의존**해 이 폴더만으로는 원클릭 실행이 안 된다. CASE/EEVR/MAUS 원본 데이터(비공개)와 스크립트 상단 경로 설정이 있어야 재학습된다. 구조·방법 자체는 `training/core/` 코드로 그대로 재현된다.
 
 ---
 
