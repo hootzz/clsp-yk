@@ -1,0 +1,306 @@
+schema_version: 1
+context_schema_version: original_context7_v2
+python: D:\2026\test\venv310\Scripts\python.exe
+model_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3
+base_config: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\config_512_clsp_multiview.yaml
+case_root: D:\2026\clsp\text-clsp\Data_files\CASE_full
+case_source_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\work_models\nsegment_lag4_p10s\source_data
+work_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\target_routed_title_final\work_model
+text_stage1_checkpoint: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_case_window_original7_v2\stage1\context7_language_pretrain\best.pt
+training_datasets:
+- case
+- eevr
+- maus
+zero_shot_datasets:
+- wesad
+public_context:
+  include_eevr_scene: true
+  include_maus_level: true
+duration_contract:
+  eevr_session_audit: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\eevr_papagei_p_full_v4\eevr_session_preprocessing_audit.csv
+  maus_raw_root: D:\2026\clsp\text-clsp\Data_files\MAUS\MAUS\Data\Raw_data
+  maus_sampling_rate_hz: 256
+  expected_maus_duration_seconds: 300
+public_source:
+  manifest: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_public_clsp\source_data\public_clsp_manifest.csv
+  ppg_csv: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_public_clsp\source_data\public_clsp_ppg512.csv
+  eevr_ppg_csv: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\eevr_papagei_p_full_v4\eevr_papagei_embeddings.csv
+  unmasked_manifest: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_emowear_r9r14\source_data\v3_manifest_512_clsp_multiview_emowear.csv
+source:
+  annotation_lag_sec: 4.0
+  zscore_scope: participant_window
+  temporal_pool_windows: 1
+  physiological_hz: 1000
+  annotation_hz: 20
+  target_hz: 125
+  window_sec: 10
+  bandpass_hz:
+  - 0.5
+  - 8.0
+  filter_order: 3
+  minimum_annotation_coverage: 0.9
+  content_video_ids:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  excluded_video_ids:
+  - 10
+  - 11
+  - 12
+  shared_cache_root: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\cache\case_features
+  legacy_video_cache_root: null
+split:
+  seeds:
+  - 42
+  - 43
+  - 44
+  legacy_holdout_fraction: 0.15
+  validation_fraction: 0.15
+  primary_seed: 42
+public_validation:
+  enabled: true
+  fraction: 0.15
+  test_fraction: 0.15
+  expected_checkpoint_tasks:
+  - - case
+    - valence
+  - - case
+    - arousal
+  - - eevr
+    - valence
+  - - eevr
+    - arousal
+  - - maus
+    - cognitive_load
+training:
+  epochs: 25
+  patience: 7
+  batch_size: 32
+  learning_rate: 0.0001
+  text_encoder_learning_rate: 2.0e-05
+  ppg_only_learning_rate: 0.0001
+  ppg_backbone_learning_rate: 1.0e-05
+  warmup_freeze_ppg_epochs: 3
+  weight_decay: 0.01
+  modality_dropout: 0.2
+  clsp_lambda: 0.01
+  macro_metric_aggregation: target_balanced
+  fusion_mode: target_routed_direct
+  dataset_loss_weights:
+    case: 1.0
+    eevr: 1.0
+    maus: 1.0
+  sampling:
+    strategy: capped_source_repeat
+    source_repeats_per_epoch:
+      case: 1
+      eevr: 4
+      maus: 4
+rescue_selection:
+  selection_data: validation_only
+  preprocessing_metric: seed_mean_target_balanced_validation_ccc
+  practical_equivalence_ccc: 0.005
+  expected_main_candidate_id: zrecording_lag4_p10s
+  expected_main_source:
+    annotation_lag_sec: 4
+    zscore_scope: participant_window
+    temporal_pool_windows: 1
+    analysis_window_sec: 10
+    target: same_window_continuous_va_mean
+    normalization_interpretation: normalization-only causal candidate; the shared
+      whole-recording zero-phase filter remains an explicitly separate caveat
+  case_auxiliary_objectives:
+    continuous_label_ppg_contrastive: false
+    delta_va_regression: false
+    causal_multiwindow_attention: false
+  diagnostic_evidence:
+    preprocessing_validation: ../work_case_window_rescue_v3/selection/preprocessing_confirmed_summary.csv
+    temporal_label_diagnostic: ../work_case_window_rescue_v3/case_continuous_label_ppg_contrastive/CASE_CONTINUOUS_LABEL_PPG_CONTRASTIVE_RESULTS.md
+  screening_seed: 42
+  confirmation_seeds:
+  - 43
+  - 44
+  shortlist_size: 3
+  tie_break:
+  - shorter_temporal_pool
+  - lower_annotation_lag
+  - participant_recording_zscore
+  candidates:
+    annotation_lag_sec:
+    - 0
+    - 2
+    - 4
+    zscore_scope:
+    - participant_video
+    - participant_recording
+    temporal_pool_windows:
+    - 1
+    - 3
+  case_weight_values:
+  - 1.0
+  - 1.25
+  - 1.5
+  case_weight_metric: seed_mean_target_balanced_validation_ccc
+  final_seeds:
+  - 42
+  - 43
+  - 44
+  test_metrics_used_for_selection: false
+conditions:
+  title_context_only_fixed_base:
+    context_mode: operational_content
+    title: true
+    include_eevr_scene: true
+    include_maus_level: true
+    mute_text: false
+    mute_ppg: true
+    clsp: false
+    context_contract: title_scene_level_operational_content
+    target_routes:
+      valence: context_only
+      arousal: context_only_matched_control
+      cognitive_load: context_only_matched_control
+  title_context_ppg_uniform_direct:
+    context_mode: operational_content
+    title: true
+    include_eevr_scene: true
+    include_maus_level: true
+    mute_text: false
+    mute_ppg: false
+    clsp: true
+    context_contract: title_scene_level_operational_content
+    target_routes:
+      valence: direct_context_ppg
+      arousal: direct_context_ppg
+      cognitive_load: direct_context_ppg
+    fusion_mode: concat
+    architecture_role: B1_uniform_direct_fusion
+  title_context_ac_direct_ppg:
+    context_mode: operational_content
+    title: true
+    include_eevr_scene: true
+    include_maus_level: true
+    mute_text: false
+    mute_ppg: false
+    clsp: true
+    context_contract: title_scene_level_operational_content
+    target_routes:
+      valence: frozen_context_only
+      arousal: direct_context_ppg
+      cognitive_load: direct_context_ppg
+execution:
+  participant_holdout_seeds:
+  - 42
+  - 43
+  - 44
+  leave_one_video_out_seeds:
+  - 42
+  participant_video_double_holdout_seeds: []
+content_evaluation:
+  operational_protocol: participant_holdout
+  operational_interpretation: known_content_unseen_participant
+  generalization_protocol: leave_one_video_out
+  generalization_interpretation: unseen_case_video_diagnostic
+  content_only_condition: context_content_only
+  ppg_only_condition: ppg_only
+  main_condition: context_content_ppg
+  generic_diagnostic_condition: generic_context_ppg
+  primary_incremental_metric: 'context_content_ppg minus context_content_only
+
+    '
+  content_identity_effect: 'context_content_ppg minus generic_context_ppg
+
+    '
+  claim_boundary: 'participant-holdout is operational known-content performance, not
+    unseen-content or zero-shot generalization
+
+    '
+trained_source_binary:
+  evaluation: non_zero_shot_seen_dataset_unseen_participant
+  source_datasets:
+  - case
+  - eevr
+  - maus
+  expected_conditions:
+  - context_content_only
+  - ppg_only
+  - context_content_ppg
+  - generic_context_ppg
+  five_point_mapping: score5 = 1 + 4 * normalized_value
+  class_mapping:
+    1-3: 0
+    4-5: 1
+  five_point_boundary: 3.5
+  normalized_boundary: 0.625
+  primary_binary_metric: macro_f1
+  keep_continuous_ccc_primary: true
+  maus_scale_note: derived_from_normalized_weighted_nasa_tlx
+wesad_zero_shot:
+  reference_notebook: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\EEVR-main\Codes\Zero-Shot
+    Transfer\WESAD\wesad_zeroshot.ipynb
+  prompt_preprocessing: notebook_equivalent
+  prompts:
+    arousal_high: data high arousalcategory
+    arousal_low: data low less arousalcategory
+    valence_high: data high valencecategory
+    valence_low: data low less valencecategory
+  condition_binary_mapping:
+    baseline:
+      arousal: 0
+      valence: 0
+    stress:
+      arousal: 1
+      valence: 0
+    amusement:
+      arousal: 0
+      valence: 1
+    meditation:
+      arousal: 1
+      valence: 1
+  primary_similarity: dot_product
+  secondary_similarity: cosine
+rescue_candidate:
+  candidate_id: zrecording_lag4_p10s
+  zscore_scope: participant_recording
+  annotation_lag_sec: 4.0
+  temporal_pool_windows: 1
+  analysis_window_sec: 10.0
+_plan_path: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\plans\case_nsegment_lag4_p10s.yaml
+_plan_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\plans
+target_routed_final_contract:
+  schema_version: 1
+  status: new_hypothesis_not_existing_result
+  normalization: participant_window
+  title_level_context:
+    case: official content title
+    eevr: official scene/content identity
+    maus: n-back level
+  population_predictors:
+    valence: frozen context-only
+    arousal: residual-free direct context+PPG
+    cognitive_load: residual-free direct context+PPG
+  inference_personalization: target-wise validation-estimated empirical-Bayes random
+    intercept
+  freeze_parameter_prefixes:
+  - text_branch
+  - target_context_trunks.valence
+  - target_routed_heads.valence
+  test_metrics_used_for_architecture: false
+b0_b1_b2_contract:
+  status: predefined_followup_control
+  B0: title Context-only for V/A/C
+  B1: historical uniform concat Context+PPG for V/A/C
+  B2: frozen Context-only V; target-specific direct Context+PPG A/C
+  matched_factors:
+  - source rows
+  - participant split
+  - seeds
+  - title context
+  - normalization
+  - training budget
+  test_metrics_used_for_architecture: false

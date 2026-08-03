@@ -1,0 +1,32 @@
+# --- data & private artifacts (never publish) ---
+Data_files/
+data/
+**/data/watch/
+*.jsonl
+
+# --- credentials ---
+.env
+*.env
+**/secrets*
+
+# --- model weights (large / not redistributed) ---
+*.pt
+*.pkl
+*.safetensors
+weights/
+**/papagei-foundation-model/
+
+# --- runtime outputs ---
+outputs/
+reports/
+work_model/
+cache/
+processed_*.csv
+raw_*.csv
+dump_*.txt
+
+# --- python ---
+**/__pycache__/
+*.pyc
+.venv/
+venv*/
