@@ -230,26 +230,6 @@ M0와 M2는 각 참가자의 동일 query row에서 평가한다. support는 첫
 주 개인화 결과는 **EEVR Arousal K=4의 continuous CCC lift**다. 같은 조건의 Accuracy·BA·Macro-F1은 개선되지 않았으므로 개인화가 모든 지표나 타깃을 높인다고 주장하지 않는다. CASE V의 유의한 수치는 +0.003으로 매우 작고 분류 지표가 감소했다.
 
 ---
-
-## 6. 전체 판독
-
-1. 논문의 공식 baseline은 **B0 Context-only**다. PPG-only는 modality-only 진단 기준선이고 M0는 개인화하지 않은 B2 query prediction이다.
-2. Source에서는 B0가 A/C CCC에서 가장 높다. 따라서 B2를 source 성능 최적 모델로 주장할 수 없다.
-3. Strict external에서는 B2가 WESAD A와 CogWear C에서 B0 대비 유의한 paired 증분을 보인다. 이는 domain shift 아래의 complementary robustness 근거이지 보편적 우월성의 근거는 아니다.
-4. PPG-only가 CogWear의 절대 CCC에서 B2보다 높다. 생리 신호가 외부 C에 유용하다는 근거는 되지만 현재 fusion이 PPG 정보를 최적으로 활용한다고 말할 수는 없다.
-5. Valence는 B2에서 B0 경로를 그대로 고정하므로 PPG 증분이 구조적으로 0이다. 완전한 외부 zero-shot에서 Valence 절대 성능도 낮다.
-6. 개인화는 target-·K-·metric-selective하다. 확실한 주 결과는 EEVR A의 CCC lift이며 전 타깃 개선으로 일반화하지 않는다.
-7. EmoWear와 VRFS는 diagnostic/non-confirmatory 결과로만 둔다.
-
-## 7. 수치 정본
-
-| 결과 | 원본 파일 |
-|---|---|
-| PPG-only source | `model_v3/personalization_v2/reports/source/metrics_per_seed.csv` (`ready_nsegment`, `ppg_only`, K=0) |
-| B0/B1/B2 source | `target_routed_title_final/reports/b0_b1_b2/{target_metrics_summary.csv,metrics_summary.csv}` |
-| Source paired CI | `target_routed_title_final/reports/b0_b1_b2/participant_bootstrap_pairwise.csv` |
-| PPG-only external | `model_v3/personalization_v2/reports/external_zero_shot/metrics_summary.csv` (`ready_nsegment`, `ppg_only`) |
-| B0/B1/B2 external | `target_routed_title_final/reports/b0_b1_b2/external_zero_shot/metrics_summary.csv` |
 | External paired CI | `target_routed_title_final/reports/b0_b1_b2/external_zero_shot/participant_bootstrap.csv` |
 | EB absolute metrics | `target_routed_title_final/reports/b0_b1_b2/metrics_summary.csv` |
 | EB paired CI | `target_routed_title_final/reports/b0_b1_b2/participant_bootstrap_ri_lift.csv` |
