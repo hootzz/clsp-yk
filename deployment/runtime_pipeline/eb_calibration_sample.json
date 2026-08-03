@@ -1,0 +1,6 @@
+{
+  "_note": "TEMPLATE ONLY. tau2 (between-user) and sigma2 (within-user) variance components, seed-averaged from the CASE/EEVR/MAUS validation participants. These are SOURCE estimates — recalibrate on AR deployment dev participants before any real personalized use. Note valence tau2 is small, so its EB offset shrinks toward zero by design.",
+  "arousal":        {"tau2": 0.0125, "sigma2": 0.0344},
+  "valence":        {"tau2": 0.0040, "sigma2": 0.0324},
+  "cognitive_load": {"tau2": 0.0274, "sigma2": 0.0214}
+}

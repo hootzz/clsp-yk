@@ -1,8 +1,9 @@
 import csv
 import numpy as np
 import torch
-import sys
-sys.path.append("D:/2026/test/papagei-foundation-model")
+import os, sys
+sys.path.append(os.environ.get("PAPAGEI_ROOT",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "papagei-foundation-model")))
 
 from linearprobing.utils import load_model_without_module_prefix
 from models.resnet import ResNet1DMoE

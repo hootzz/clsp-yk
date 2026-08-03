@@ -1,152 +1,100 @@
-# MEM-HQS · Target-routed multimodal affect estimation
+# MEM-HQS — Cognitive-Emotional Estimator (target-routed)
 
-Estimate **Valence / Arousal / Cognitive load** from wearable **PPG** + deployable
-**operational context** text, for on-device (AR / smartwatch) use.
+웨어러블 **PPG + 상황 맥락 텍스트**로 **Valence / Arousal / Cognitive load**를 추정한다.
+이 폴더 하나로 학습·배포가 끝난다. 사용자는 **PaPaGEI 모델 · 학습 체크포인트 · (선택) GPT 키**만 넣으면 된다.
 
-The model routes each target through a different path:
-
-| Target | Population predictor | PPG | Personalization |
-|---|---|---|---|
-| **Valence** | frozen **Context-only** | — (no PPG) | target-wise EB intercept |
-| **Arousal** | **Context + PPG** direct fusion | ✅ | target-wise EB intercept |
-| **Cognitive load** | **Context + PPG** direct fusion | ✅ | target-wise EB intercept |
-
-Text is encoded by DistilBERT; PPG is encoded by a **frozen PaPaGEI-P** (ResNet1D,
-512-d) foundation model. The Valence route carries no PPG by design — this is
-verified by a hard invariance check (its predictions are identical to the
-context-only model).
+구조: **Valence = 맥락만**, **Arousal · Cognitive load = 맥락 + PPG** (target-routed).
 
 ---
 
-## Repository layout
+## 폴더 구성
 
-```
-training/
-  core/              model definition + training method
-                     (model, train, dataset, losses, splits, alignment,
-                      input_contract, papagei_embed, lodo)
-  target_routed/     the target-routed experiment
-                     run_*.py/.cmd, evaluate_*.py, plan/*.yaml,
-                     TARGET_ROUTED_ARCHITECTURE.md
-deployment/
-  ppg/               Galaxy-watch PPG receiver + 6-step preprocessing
-                     + PaPaGEI-P embedding (receiver.py, pipeline.py, papagei-p.py)
-  runtime_pipeline/  merge context+PPG -> finalize -> V/A/C in [0,1]
-                     (merge.py, context_text.py, finalize.py, tests/)
-results/
-  main_results.csv   headline held-out numbers (see below)
-```
-
-> **Not included (by design):** raw participant datasets (`Data_files/`), model
-> weights (`*.pt`), API keys (`.env`), and the digital-behaviour **collection**
-> code (ActivityWatch / Android). Only source code and one results table are here.
+- `training/` — 모델·학습 코드
+  - `core/` : `model.py`, `train.py`, `papagei_embed.py` 등 (모델 정의·임베딩)
+  - `target_routed/` : 학습·평가 실행 스크립트
+- `deployment/` — 배포 (수집 → 병합 → 추론)
+  - `digital_behavior/` : PC(ActivityWatch)·Android 디지털 행동 수집기
+  - `ppg/` : Galaxy PPG 수신·전처리·PaPaGEI 임베딩
+  - `merge.py` : 수집 이벤트 + PPG → `datastream.jsonl`
+  - `runtime_pipeline/` : `run_target_routed_deploy.py` (datastream → V/A/C)
+- `results/FINAL_RESULTS.md` — 최종 결과표
 
 ---
 
-## Architecture
+## 준비 (한 번만)
 
-```
-7-slot operational context ── DistilBERT ── context representation ─┐
-                                                                    ├─▶ V / A / C  (each in [0,1])
-10 s PPG ── frozen PaPaGEI-P (512-d) ── trainable PPG path ─────────┘
-                                     (Arousal / Cognitive load only)
-
-first K enrollment labels ── target-wise empirical-Bayes shrunk intercept  (optional personalization)
-```
-
-- Datasets used for training: **CASE + EEVR + MAUS** (participant-disjoint splits, seeds 42/43/44).
-- Zero-shot evaluation datasets (never trained on): WESAD, CogWear, EmoWear, VRFS.
-- PaPaGEI-P is **frozen** and used only to produce 512-d embeddings — it is never fine-tuned.
-- Personalization is a leakage-free few-shot **output intercept** (no encoder/head update).
-
-See `training/target_routed/TARGET_ROUTED_ARCHITECTURE.md` for the exact contract.
-
----
-
-## Results (held-out, `results/main_results.csv`)
-
-Trained-source **participant-holdout**, K=0, 3-seed mean. Binary Accuracy / Macro-F1
-use the **1–3 vs 4–5** boundary (normalized threshold **0.625**). CCC is the primary
-(continuous) metric.
-
-| Model | Valence CCC | Arousal CCC | Cog-load CCC |
-|---|---|---|---|
-| PPG-only *(diagnostic, base-lineage run)* | 0.090 | 0.072 | 0.153 |
-| **B0** context-only | 0.509 | 0.501 | 0.647 |
-| **B1** uniform context+PPG | 0.532 | 0.440 | 0.485 |
-| **B2** target-routed (proposed) | 0.509 | 0.456 | 0.492 |
-
-(Full CCC / Accuracy / Balanced-Accuracy / Macro-F1 per target in the CSV. Each row
-carries a `run` column: B0/B1/B2 are the most-recent `target_routed_title_final`
-run; **PPG-only is a diagnostic baseline from the base-lineage run
-`zrecording_lag4_p10s`** — a different run, so its absolute values are not
-seed-matched to B0/B1/B2 and should be read only as an order-of-magnitude baseline.)
-
-**Reading it honestly:**
-- The source held-out numbers rest on a strong **title-based contextual prior**
-  (participant-disjoint but not stimulus-disjoint); do not read them as general
-  real-life context.
-- On this in-distribution split, adding PPG does not improve CCC — the content
-  prior is already strong.
-- PPG's benefit appears under **domain shift** (external zero-shot): the
-  context+PPG route gives a significant CCC increment for Cognitive load (CogWear)
-  and Arousal (WESAD) over the matched context-only route (participant-paired
-  bootstrap CI excludes zero). Those increment tables are produced by the
-  `evaluate_external_zero_shot.py` script.
-- **PPG-only** stays near chance (CCC ≈ 0.07–0.15) for all three targets — physiology
-  alone does not decode affect for unseen participants. It is included as a diagnostic
-  baseline from the base-lineage run (`run` column), not the target-routed run.
-
----
-
-## Deployment (inference)
-
-```
-Galaxy Watch UDP (PPG 25 Hz + ACC)
-  → deployment/ppg/receiver.py     receive
-  → deployment/ppg/pipeline.py     invert → ACC-Kalman → 0.5–8 Hz bandpass
-                                   → flatline gate → z-score → 25→125 Hz
-                                   → 10 s / 2 s sliding windows
-  → deployment/runtime_pipeline/merge.py       align context + PPG
-  → deployment/runtime_pipeline/finalize.py    frozen PaPaGEI-P 512-d + model
-  → V / A / Cognitive load, each in [0,1]
-```
-
-Run the plumbing test (no model needed):
+1. 의존성
 
 ```bash
-python -m unittest deployment.runtime_pipeline.tests.test_smoke -v
+pip install -r deployment/runtime_pipeline/requirements.txt
 ```
 
-**Running the target-routed model.** The final model uses the original-7 context
-schema and the routed heads, so it is served by a small back-end that swaps into
-the existing merge front-end without editing any original file:
+2. PaPaGEI 모델 — **repo 루트에** 배치
+
+```bash
+git clone https://github.com/Nokia-Bell-Labs/papagei-foundation-model.git
+# PaPaGEI-P weight 다운로드 →  weights/papagei_p.pt
+```
+
+3. 학습된 체크포인트 준비: `full.pt` (target-routed)
+
+4. (선택) GPT 키 — openai로 맥락 문장 생성할 때만. `.env` 에:
+
+```text
+OPENAI_API_KEY=sk-...
+```
+
+---
+
+## 배포: 실제 V/A/C 뽑기
+
+흐름 = **수집 → 병합 → 추론**
+
+```bash
+# 1) 수집: PC/Android 디지털 행동 (deployment/digital_behavior/) + Galaxy PPG
+python deployment/ppg/receiver.py --port 5005
+
+# 2) 병합: 이벤트 + PPG → datastream.jsonl
+python deployment/merge.py --processed processed_*.csv --digital events_*.jsonl --out datastream.jsonl
+
+# 3) 추론: datastream → V/A/C
+python deployment/runtime_pipeline/run_target_routed_deploy.py \
+  --in datastream.jsonl --out final.jsonl --ckpt full.pt
+```
+
+개인화까지 (선택, 첫 K개 자기보고로 보정):
 
 ```bash
 python deployment/runtime_pipeline/run_target_routed_deploy.py \
-    --in datastream.jsonl --out final_datastream.jsonl \
-    --ckpt <target_routed full.pt> --papagei-ckpt <papagei_p.pt>
+  --in datastream.jsonl --out final.jsonl --ckpt full.pt \
+  --calibration deployment/runtime_pipeline/eb_calibration_sample.json \
+  --enrollment enroll.jsonl --enroll-k 4
 ```
 
-- `context_text_original7.py` — renders the original-7 context from `user_state`.
-- `finalize_target_routed.py` — loads the model with `fusion_mode="target_routed_direct"`
-  (the plain `finalize.py` cannot load this checkpoint).
-- `run_target_routed_deploy.py` — merge output → render → PaPaGEI-P → model → V/A/C.
-
-Valence is a context-only route: its output is invariant to PPG (verified at load
-time). Checkpoints and PaPaGEI-P weights are kept private.
-
-> Production note: the domain gap between finger/contact training PPG and the
-> Galaxy wrist stream still needs deployment-time calibration, and few-shot (K>0)
-> personalization is applied as an optional output offset. This repository
-> publishes the pipeline and a single-record verification, not a calibrated build.
+- 개인화 없이(기본) = zero-shot. `--calibration`+`--enrollment` 주면 개인화.
+- `enroll.jsonl` = `datastream.jsonl`과 같은 포맷 + 각 줄에 `label:{valence,arousal,cognitive_load}` + 같은 `user_id`.
 
 ---
 
-## Reference
+## 학습: 모델 재학습 (본인 데이터 필요)
 
-PPG foundation model: **PaPaGEI-P** (frozen). See `deployment/ppg/README.md`.
+```bash
+python training/target_routed/run_target_routed_final.py all 0
+```
 
-## License
+- 학습 데이터(CASE/EEVR/MAUS)는 비공개다. 스크립트/플랜의 데이터 경로를 본인 데이터로 지정해야 실행된다.
+- 코드만으로 구조·방법은 그대로 재현된다.
 
-See `LICENSE`.
+---
+
+## 결과
+
+`results/FINAL_RESULTS.md` — source(PPG-only/B0/B1/B2) + external zero-shot + 개인화 lift 통합 표.
+
+---
+
+## 참고
+
+- PaPaGEI: <https://github.com/Nokia-Bell-Labs/papagei-foundation-model> (frozen, 미세조정 안 함)
+- 경로 override 필요 시 환경변수: `PAPAGEI_ROOT`, `PAPAGEI_CKPT`.
+- 라이선스: `LICENSE`.

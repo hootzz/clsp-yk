@@ -3,6 +3,7 @@ Data_files/
 data/
 **/data/watch/
 *.jsonl
+paper/
 
 # --- credentials ---
 .env

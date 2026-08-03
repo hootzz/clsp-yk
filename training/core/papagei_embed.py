@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import os
 import sys
 from fractions import Fraction
 
@@ -14,8 +15,10 @@ from scipy.signal import butter, filtfilt, resample_poly
 
 FS = 125
 WIN = 1250
-PAP_ROOT = r"D:/2026/clsp-jw/ppg/papagei-foundation-model"
-PAP_CKPT = r"D:/2026/clsp-jw/ppg/weights/papagei_p.pt"
+# Self-contained defaults: PaPaGEI repo + weights at the repo root. Override via env.
+_REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PAP_ROOT = os.environ.get("PAPAGEI_ROOT", os.path.join(_REPO, "papagei-foundation-model"))
+PAP_CKPT = os.environ.get("PAPAGEI_CKPT", os.path.join(_REPO, "weights", "papagei_p.pt"))
 
 
 def preprocess(sig, fs):

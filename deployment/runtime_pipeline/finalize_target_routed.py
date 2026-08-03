@@ -27,10 +27,8 @@ from pathlib import Path
 from typing import Any
 
 PAPAGEI_DIM = 512
-# model.py that MATCHES the target-routed checkpoint (training core). Override with --model-dir.
-DEFAULT_MODEL_DIR = Path(
-    r"D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3"
-)
+# model.py that MATCHES the target-routed checkpoint = local training/core. Override with --model-dir.
+DEFAULT_MODEL_DIR = Path(__file__).resolve().parents[2] / "training" / "core"
 
 
 def _load_model_module(model_dir: Path):

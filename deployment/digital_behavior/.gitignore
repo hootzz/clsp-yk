@@ -1,0 +1,23 @@
+# 수집된 데이터 (개인정보 보호)
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Android 빌드 결과물
+Android/app/build/
+Android/.gradle/
+Android/.kotlin/
+Android/local.properties
+*.apk
+*.aab
+
+# IDE
+Android/.idea/workspace.xml
+Android/.idea/caches/
+Android/.idea/*.xml
+!Android/.idea/.gitignore
+!Android/.idea/codeStyles/
