@@ -1,14 +1,7 @@
-"""Target-routed inference adapter (fixes the deployment HARD-BREAK).
-
-WHY THIS FILE EXISTS
+"""Target-routed inference adapter 
 --------------------
-The original `finalize.py` `StateEstimatorV3` builds `MultimodalStateEstimator`
-WITHOUT passing `fusion_mode`, so it defaults to "concat". Strict-loading the
-final **target-routed** checkpoint (`fusion_mode="target_routed_direct"`, with
-`target_context_trunks.valence` / `target_routed_heads.*`) then raises
-RuntimeError -> the process never produces output. There is no CLI flag to fix
-this, and originals must not be edited. This standalone adapter builds the model
-with the correct `fusion_mode` and `text_max_length=64` and loads the checkpoint.
+This standalone adapter builds the model with the correct `fusion_mode` 
+and `text_max_length=64` and loads the checkpoint.
 
 Valence is a context-only route: its output does not depend on the PPG input
 (verified at load time by `assert_valence_ppg_invariant`).
