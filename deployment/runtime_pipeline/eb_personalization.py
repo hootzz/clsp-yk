@@ -1,6 +1,6 @@
 """Target-wise empirical-Bayes (EB) output calibration for deployment.
 
-This is the §3.1.3.6 personalization as a **runtime output-offset layer**: it does
+This is the §3.1.3.6 personalization as a runtime output-offset layer: it does
 NOT touch the frozen target-routed model. For each user and target it accumulates
 the residuals of the first K enrollment labels, forms a shrunk per-user intercept
 
@@ -17,8 +17,7 @@ from a calibration bundle. Behaviour by design:
   so the base valence (a context-only route) is left essentially unchanged.
 
 Leakage-free: the target user's later (query) labels are never used; only the first
-K enrollment labels contribute, and tau2/sigma2 are external (fit offline, never on
-the query user).
+K enrollment labels contribute, and tau2/sigma2 are external (fit offline, never on the query user).
 """
 from __future__ import annotations
 
