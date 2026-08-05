@@ -10,8 +10,7 @@ Wires the pieces that the existing finalize.py lineages do NOT support:
       -> V / A / C in [0,1]
       -> final_datastream.jsonl
 
-This does NOT edit any original file. It consumes the same `datastream.jsonl`
-schema produced by the collectors->merge front-end (fields: user_state, ppg[1250]),
+It consumes the same `datastream.jsonl` schema produced by the collectors->merge front-end (fields: user_state, ppg[1250]),
 so it drops into the existing deployment branch by swapping only the model back-end.
 
 Modes:
