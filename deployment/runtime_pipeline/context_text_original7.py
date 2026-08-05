@@ -1,21 +1,10 @@
-"""Original-7 (HQS-Proposal-aligned) context renderer for the target-routed model.
-
-WHY THIS FILE EXISTS
---------------------
-`context_text.py` (original, untouched) emits the LEGACY 7-slot schema
-(posture / movement / social_engagement / interpersonal_density /
-device_interaction_behavior / environment / temporal), which matched the older
-`context7_gpt` checkpoint. The final target-routed model was trained on the
-ORIGINAL-7 schema defined by the HQS Proposal HQS-Table:
+"""
+7 schema defined by the HQS Proposal HQS-Table:
 
     posture / energy_expenditure / social_engagement / interpersonal_density /
     app_window / duration / event_type
 
-Feeding legacy prose to the target-routed model is out-of-distribution (and
-valence is a context-only route, so text quality directly determines valence).
-This module renders the ORIGINAL-7 prose in the same sentence style the model
-was trained on, and maps the runtime `user_state` (as produced by merge.py /
-datastream.jsonl) into original-7 slots. Observable-only: unknown fields stay
+Observable-only: unknown fields stay
 `not_recorded`; nothing is fabricated. Originals are not modified.
 """
 from __future__ import annotations
