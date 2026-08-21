@@ -1,11 +1,12 @@
-"""LODO — Leave-One-Dataset-Out = v3가 정직하게 주장할 수 있는 zero-shot 측정.
+"""LODO — Leave-One-Dataset-Out zero-shot evaluation.
 
-각 데이터셋 D에 대해: (all - D)로 학습 → D로 평가(그 D가 가진 타깃만).
-= "미지 데이터셋(맥락)으로의 cross-dataset 전이" = EEVR이 실제로 한 zero-shot과 동종.
+For each dataset D, train on all other datasets and evaluate only the targets
+available in D. This measures cross-dataset transfer to an unseen dataset.
 
-리포트: 타깃별 CCC(연속) + Acc/F1(이진, 0.5 컷). per-dataset 표준화 CCC도 병기(V10 캘리브레이션 경고).
+Reports target-wise CCC for continuous prediction, Acc/F1 with a 0.5 cutoff,
+and per-dataset standardized CCC as a calibration diagnostic.
 
-실행: python lodo.py --config config.yaml
+Usage: python lodo.py --config config.yaml
 """
 from __future__ import annotations
 
@@ -37,7 +38,7 @@ def ccc(p, y):
 
 
 def bin_acc_f1(p, y, cut=None):
-    # cut=None이면 참라벨 중앙값으로 high/low 이진화(분포 불균형에도 Acc/F1 유의)
+    # If cut is None, use the label median for high/low binarization.
     p, y = np.asarray(p), np.asarray(y)
     c = float(np.median(y)) if cut is None else cut
     pb, yb = (p >= c).astype(int), (y >= c).astype(int)
