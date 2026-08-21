@@ -1,11 +1,10 @@
 """
-7 schema defined by the HQS Proposal HQS-Table:
+Seven-slot context schema used by the HQS runtime pipeline:
 
     posture / energy_expenditure / social_engagement / interpersonal_density /
     app_window / duration / event_type
 
-Observable-only: unknown fields stay
-`not_recorded`; nothing is fabricated. Originals are not modified.
+Only observable fields are used. Unknown fields remain `not_recorded`.
 """
 from __future__ import annotations
 
@@ -22,7 +21,7 @@ SLOT_NAMES = (
     "event_type",
 )
 
-# reused leakage guard (same spirit as context_text.py FORBIDDEN_LABEL_HINTS)
+# Target leakage guard.
 FORBIDDEN_LABEL_HINTS = (
     "arousal", "valence", "cognitive load", "mental workload", "hvha", "hvla",
     "lvha", "lvla", "stress", "stressed", "anxious", "overloaded",
@@ -55,7 +54,7 @@ def duration_bucket(seconds: Any) -> str:
 
 
 def user_state_to_slots(user_state: dict[str, Any], duration_seconds: Any = None) -> dict[str, str]:
-    """Map runtime user_state (legacy-shaped) -> ORIGINAL-7 slot values.
+    """Map runtime user_state to seven-slot context values.
 
     Only observable fields are used; unknowns remain not_recorded.
     """
@@ -64,14 +63,14 @@ def user_state_to_slots(user_state: dict[str, Any], duration_seconds: Any = None
     dig = user_state.get("digital", {}) or {}
 
     posture = _norm(phys.get("posture"))
-    # movement/physical-activity level == energy expenditure concept (HQS "Movement State")
+    # Use movement as a fallback for energy expenditure.
     energy = _norm(phys.get("energy_expenditure", phys.get("movement")))
     if energy not in _ENERGY:
-        energy = energy  # keep as-is; renderer will surface it verbatim
+        energy = energy  # Preserve unrecognized observable values.
     social = _norm(soc.get("engagement", soc.get("social_engagement")))
     density = _norm(soc.get("interpersonal_density"))
 
-    # device usage log -> app_window / duration / event_type (observable only)
+    # Map observable device usage fields.
     device = _norm(dig.get("device_type"))
     app_window = _norm(dig.get("app_window"))
     if app_window == "not_recorded" and device != "not_recorded":
@@ -103,7 +102,7 @@ def validate_text(text: str) -> list[str]:
 
 
 def render(context: dict[str, Any], observable_detail: str = "") -> str:
-    """Render ORIGINAL-7 prose in the model's training sentence style."""
+    """Render seven-slot context in the model's training sentence style."""
     s = validate_slots(context)
     posture = s["posture"].replace("_", " ")
     energy = s["energy_expenditure"].replace("_", " ")
