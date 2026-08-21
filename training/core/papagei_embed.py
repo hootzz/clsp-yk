@@ -1,7 +1,8 @@
-"""PaPaGEI-P (ResNet1D) 임베더 + PPG 전처리 — S2 공통 모듈.
+"""PaPaGEI-P (ResNet1D) embedder with PPG preprocessing.
 
-논문 §3.1.3.5 경로: raw PPG → bandpass(0.5-8) → 125Hz resample → z-score → 1250(10s) 윈도우 → PaPaGEI-P 512.
-변형 = P (papagei_p.pt, ResNet1D). 논문 "based on ResNet1D"와 정합.
+Pipeline: raw PPG → bandpass(0.5-8) → 125Hz resample → z-score →
+1250-sample (10s) windows → PaPaGEI-P 512-dimensional embeddings.
+Uses the P variant (papagei_p.pt, ResNet1D).
 """
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ PAP_CKPT = os.environ.get("PAPAGEI_CKPT", os.path.join(_REPO, "weights", "papage
 
 
 def preprocess(sig, fs):
-    """bandpass 0.5-8 → 125Hz resample → z-score. 반환: 125Hz 1D."""
+    """Bandpass 0.5-8 → 125Hz resample → z-score. Returns a 125Hz 1D signal."""
     sig = np.asarray(sig, dtype=float).flatten()
     if len(sig) < fs * 2:
         return None
@@ -36,7 +37,7 @@ def preprocess(sig, fs):
 
 
 def windows(sig, n=WIN, stride=None, max_win=None):
-    """비겹침(기본) 1250 윈도우. flat 제거. max_win이면 균등 샘플."""
+    """Create 1250-sample windows, remove flat segments, and optionally subsample evenly."""
     stride = stride or n
     ws = [sig[i:i + n] for i in range(0, len(sig) - n + 1, stride)]
     ws = [w for w in ws if np.std(w) > 1e-6]
