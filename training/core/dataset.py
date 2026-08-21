@@ -1,10 +1,10 @@
-"""v3 dataset — MultiDatasetAffect.
+"""MultiDatasetAffect dataset loader.
 
-여러 데이터셋의 manifest.csv + ppg_features.csv를 MANIFEST_SPEC 포맷으로 읽어
-partial-label(타깃별 mask) + ppg_mask + context_sig + teacher_text 를 배치로 제공.
+Reads manifest.csv and ppg_features.csv and provides batches containing
+partial-label target masks, ppg_mask, context_sig, and teacher_text.
 
-- 타깃 NaN → mask 0 (partial_masked_mse가 자동 제외)
-- ppg_available=0 또는 ppg 조인 실패 → ppg_features 영벡터 + ppg_mask 0
+- Target NaN → mask 0, excluded by partial_masked_mse.
+- ppg_available=0 or failed PPG join → zero PPG features and ppg_mask 0.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ class MultiDatasetAffect(Dataset):
         self.ppg_dim = ppg_dim
         self.ppg_cols = [f"ppg_f{i}" for i in range(ppg_dim)]
 
-        # PPG 임베딩 맵
+        # PPG embedding map.
         self.ppg_map: dict[str, np.ndarray] = {}
         if ppg_csv and Path(ppg_csv).is_file():
             pdf = pd.read_csv(ppg_csv)
@@ -232,7 +232,7 @@ class MultiDatasetAffect(Dataset):
             ),
             "ppg_features": ppg,
             # Confidence-gated residual: unreliable PPG is exactly zero and
-            # never becomes a CLSP positive (R14 conservative abstention).
+            # never becomes a CLSP positive.
             "ppg_mask": torch.tensor(
                 ppg_confidence if has_ppg else 0.0
             ),
