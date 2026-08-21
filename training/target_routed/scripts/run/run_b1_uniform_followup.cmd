@@ -3,7 +3,7 @@ setlocal
 chcp 65001 >nul
 
 set "SCRIPT_DIR=%~dp0"
-set "PYTHON_EXE=D:\2026\test\venv310\Scripts\python.exe"
+if not defined PYTHON_EXE set "PYTHON_EXE=python"
 set "STAGE=%~1"
 set "GPU_ID=%~2"
 set "EXTRA_ARGS="
@@ -13,7 +13,7 @@ if "%GPU_ID%"=="" set "GPU_ID=0"
 if /I "%~3"=="force" set "EXTRA_ARGS=--force"
 set "CUDA_VISIBLE_DEVICES=%GPU_ID%"
 
-if not exist "%PYTHON_EXE%" (
+where "%PYTHON_EXE%" >nul || (
   echo [ERROR] Python not found: %PYTHON_EXE%
   exit /b 2
 )
