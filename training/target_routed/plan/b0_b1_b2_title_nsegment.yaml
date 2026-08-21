@@ -1,12 +1,12 @@
 schema_version: 1
 context_schema_version: original_context7_v2
-python: D:\2026\test\venv310\Scripts\python.exe
-model_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3
-base_config: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\config_512_clsp_multiview.yaml
-case_root: D:\2026\clsp\text-clsp\Data_files\CASE_full
-case_source_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\work_models\nsegment_lag4_p10s\source_data
-work_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\target_routed_title_final\work_model
-text_stage1_checkpoint: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_case_window_original7_v2\stage1\context7_language_pretrain\best.pt
+python: python
+model_dir: <model-dir>
+base_config: <base-config-path>
+case_root: <case-data-root>
+case_source_dir: <case-source-dir>
+work_dir: <work-dir>
+text_stage1_checkpoint: <text-stage1-checkpoint>
 training_datasets:
 - case
 - eevr
@@ -17,15 +17,15 @@ public_context:
   include_eevr_scene: true
   include_maus_level: true
 duration_contract:
-  eevr_session_audit: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\eevr_papagei_p_full_v4\eevr_session_preprocessing_audit.csv
-  maus_raw_root: D:\2026\clsp\text-clsp\Data_files\MAUS\MAUS\Data\Raw_data
+  eevr_session_audit: <eevr-session-audit-csv>
+  maus_raw_root: <maus-raw-root>
   maus_sampling_rate_hz: 256
   expected_maus_duration_seconds: 300
 public_source:
-  manifest: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_public_clsp\source_data\public_clsp_manifest.csv
-  ppg_csv: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_public_clsp\source_data\public_clsp_ppg512.csv
-  eevr_ppg_csv: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\eevr_papagei_p_full_v4\eevr_papagei_embeddings.csv
-  unmasked_manifest: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\dataset_ablation_pipeline\work_emowear_r9r14\source_data\v3_manifest_512_clsp_multiview_emowear.csv
+  manifest: <public-manifest-csv>
+  ppg_csv: <public-ppg-csv>
+  eevr_ppg_csv: <eevr-ppg-embeddings-csv>
+  unmasked_manifest: <unmasked-manifest-csv>
 source:
   annotation_lag_sec: 4.0
   zscore_scope: participant_window
@@ -52,7 +52,7 @@ source:
   - 10
   - 11
   - 12
-  shared_cache_root: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\cache\case_features
+  shared_cache_root: <shared-cache-root>
   legacy_video_cache_root: null
 split:
   seeds:
@@ -241,8 +241,7 @@ trained_source_binary:
   keep_continuous_ccc_primary: true
   maus_scale_note: derived_from_normalized_weighted_nasa_tlx
 wesad_zero_shot:
-  reference_notebook: D:\2026\clsp\text-clsp\Data_files\EEVR dataset\EEVR-main\Codes\Zero-Shot
-    Transfer\WESAD\wesad_zeroshot.ipynb
+  reference_notebook: <wesad-zero-shot-notebook>
   prompt_preprocessing: notebook_equivalent
   prompts:
     arousal_high: data high arousalcategory
@@ -270,8 +269,8 @@ rescue_candidate:
   annotation_lag_sec: 4.0
   temporal_pool_windows: 1
   analysis_window_sec: 10.0
-_plan_path: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\plans\case_nsegment_lag4_p10s.yaml
-_plan_dir: D:\2026\clsp\text-clsp\mem_hqs_affect\model_v3\personalization_v2\plans
+_plan_path: <plan-path>
+_plan_dir: <plan-dir>
 target_routed_final_contract:
   schema_version: 1
   status: new_hypothesis_not_existing_result
