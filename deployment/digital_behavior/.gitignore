@@ -1,4 +1,3 @@
-# 수집된 데이터 (개인정보 보호)
 data/
 
 # Python
@@ -7,7 +6,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Android 빌드 결과물
 Android/app/build/
 Android/.gradle/
 Android/.kotlin/
