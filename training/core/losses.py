@@ -1,13 +1,8 @@
-"""v3 losses — partial-label masked MSE + Supervised-Contrastive CLSP.
+"""Partial-label masked MSE and supervised-contrastive CLSP losses.
 
 partial_masked_mse:
-  라벨 있는 (target, sample)에서만 MSE. NaN 라벨은 mask=0으로 자동 제외.
-  → WESAD/K-EmoCon(V/A만), MAUS/MOCAS/SWELL(cog만), EEVR(셋 다)를 한 배치에 섞어 학습 가능.
-
-supcon_clsp:
-  in-batch false-negative(~15%, THEORETICAL_REVIEW §3.3) 제거.
-  같은 context_sig = soft positive. PPG 있는 샘플(valid)끼리만 정렬.
-  Khosla et al. 2020 SupCon을 text↔ppg 교차모달로 대칭 적용.
+  Computes MSE only for labeled target/sample pairs. NaN labels are excluded
+  by mask=0, allowing datasets with different target availability in one batch.
 """
 from __future__ import annotations
 
@@ -20,8 +15,8 @@ from model import TARGETS
 
 def partial_masked_mse(
     preds: dict[str, torch.Tensor],   # {target: [B]}
-    targets: dict[str, torch.Tensor], # {target: [B]}  (결측은 임의값, mask로 제외)
-    masks: dict[str, torch.Tensor],   # {target: [B]}  1=라벨있음
+    targets: dict[str, torch.Tensor], # {target: [B]} missing values excluded by mask
+    masks: dict[str, torch.Tensor],   # {target: [B]} 1=labeled
     sample_weights: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, dict[str, float]]:
     total = preds[TARGETS[0]].new_zeros(())
@@ -62,12 +57,11 @@ def dataset_balanced_mse(
     dataset_weights: dict[str, float] | None = None,
     sample_weights: torch.Tensor | None = None,
 ):
-    """L = mean over datasets present of (그 데이터셋의 partial-label masked MSE).
-    → row 수 많은 데이터셋(WESAD 등)이 손실을 압도하지 못하게 데이터셋 단위 균형.
+    """Average partial-label masked MSE across datasets present in the batch.
 
-    ``dataset_weights``가 있으면 데이터셋별 손실 항에만 명시적 가중치를
-    적용한다. 샘플러의 도메인 균형과 가중치 탐색을 섞지 않기 위해 샘플
-    확률은 여기서 바꾸지 않는다.
+    This prevents datasets with more rows from dominating the loss.
+    ``dataset_weights`` applies explicit weights only to dataset-level loss
+    terms; sampling probabilities are not modified here.
     """
     ds = np.asarray(datasets)
     dev = preds[TARGETS[0]].device
@@ -116,7 +110,7 @@ def supcon_clsp(
     text_z: torch.Tensor,       # [B,256]
     ppg_z: torch.Tensor,        # [B,256]
     context_sig: list[str],     # [B]
-    valid: torch.Tensor,        # [B] 1=PPG 유효
+    valid: torch.Tensor,        # [B] 1=valid PPG
     temperature: float = 0.07,
 ) -> torch.Tensor:
     device = text_z.device
@@ -135,7 +129,7 @@ def supcon_clsp(
         for j in range(B):
             if sigs[i] == sigs[j]:
                 pos[i, j] = 1.0
-    pos = pos / pos.sum(dim=1, keepdim=True).clamp_min(1e-8)  # soft positive 분포
+    pos = pos / pos.sum(dim=1, keepdim=True).clamp_min(1e-8)  # soft-positive distribution
 
     loss_t = (-pos * F.log_softmax(logits, dim=-1)).sum(dim=1)
     loss_p = (-pos.T * F.log_softmax(logits.T, dim=-1)).sum(dim=1)
@@ -172,9 +166,9 @@ def domain_safe_clsp(
     positives. An explicitly curated semantic signature may add weak
     positives, but unmatched cross-dataset samples never become negatives.
 
-    R10 is enforced by excluding rows that share participant, session, label
-    group, or an adjacent window from the negative denominator. R12 is
-    enforced by averaging each declared teacher/loss group separately.
+    Rows sharing participant, session, label group, or an adjacent window
+    are excluded from the negative denominator. Each declared teacher/loss
+    group is averaged separately.
     """
     if not 0.0 <= semantic_positive_weight <= 1.0:
         raise ValueError("semantic_positive_weight must be in [0, 1]")
