@@ -27,7 +27,7 @@ Final candidate: **B2 Target-routed**
 | External diagnostic | EmoWear (seated/walk) | V/A | 48 | motion/device diagnostic; walk uses the same trial-level SAM labels as seated |
 | External diagnostic | VRFS (flat-screen/VR) | V/A | 33 | condition-level proxy labels; participant-level SAM cannot be directly joined with PPG |
 
-Absolute CCC values are reported as mean±population SD across three seeds, while Accuracy, BA, and Macro-F1 are seed averages. The classification threshold is 0.625 for source and affect datasets and 0.5 for CogWear. Paired effects are participant-level bootstrap means with 95% CIs (2,000 resamples). Bold absolute values indicate the highest value for the same dataset and target; bold differences indicate CIs that exclude zero.
+Absolute CCC values are reported as mean±population SD across 3 seeds, while Accuracy, BA, and Macro-F1 are seed averages. The classification threshold is 0.625 for source and affect datasets and 0.5 for CogWear. Paired effects are participant-level bootstrap means with 95% CIs (2,000 resamples). Bold absolute values indicate the highest value for the same dataset and target; bold differences indicate CIs that exclude 0.
 
 ---
 
@@ -87,7 +87,7 @@ V/A aggregates the CASE and EEVR evaluation rows, while C is evaluated on MAUS. 
 | EEVR · V | 14 | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] |
 | MAUS · C | 8 | −0.142 [−0.327, 0.011] | 0.000 [−0.146, 0.146] | −0.060 [−0.229, 0.073] | −0.090 [−0.302, 0.075] |
 
-On the source datasets, B2 did not outperform B0 on A/C CCC. The zero Valence difference is a structural invariant, not a performance estimate, because B2 uses the frozen B0 Valence path unchanged.
+On the source datasets, B2 did not outperform B0 on A/C CCC. The 0 Valence difference is a structural invariant, not a performance estimate, because B2 uses the frozen B0 Valence path unchanged.
 
 ---
 
@@ -123,7 +123,7 @@ All checkpoints are frozen, with no updates, threshold selection, checkpoint sel
 | CogWear E4 · C | 18 | **+0.189 [0.126, 0.258]** | **+0.069 [0.014, 0.130]** | **+0.069 [0.009, 0.130]** | **+0.118 [0.048, 0.185]** |
 | CogWear Galaxy · C | 18 | **+0.078 [0.034, 0.127]** | −0.019 [−0.074, 0.032] | −0.019 [−0.074, 0.032] | +0.027 [−0.023, 0.080] |
 
-For WESAD A and CogWear E4 C, B2 showed positive paired gains across all four metrics, with CIs excluding zero. For CogWear Galaxy C, only the CCC gain was significant. Because absolute external CCC values remain low, these results should not be presented as high deployment accuracy.
+For WESAD A and CogWear E4 C, B2 showed positive paired gains across all four metrics, with CIs excluding 0. For CogWear Galaxy C, only the CCC gain was significant. Because absolute external CCC values remain low, these results should not be presented as high deployment accuracy.
 
 ---
 
