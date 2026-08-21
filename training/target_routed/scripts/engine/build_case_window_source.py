@@ -173,7 +173,7 @@ def _participant_cache(
 
     # Filtering and resampling occur on the entire participant recording.
     # Only afterwards are content videos sliced, avoiding per-video filter
-    # edge transients. Z-scoring scope is an explicit rescue candidate:
+    # edge transients. Z-scoring scope is configured explicitly:
     # participant-recording global or participant-by-video local.
     sos = butter(
         order,
