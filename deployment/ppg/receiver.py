@@ -1,5 +1,4 @@
-# 실시간 수신 + 로우 데이터 덤프 + 전처리 파이프라인
-# 이 파일만 실행
+# Real-time UDP receiver with raw logging and PPG preprocessing.
 from __future__ import annotations
 
 import argparse
@@ -21,6 +20,7 @@ from pipeline import (
     run_pipeline,
 )
 
+# Patterns for parsing sensor fields from incoming UDP messages.
 _RE_TS  = re.compile(r"ts=\s*(\d+)")
 _RE_PPG = re.compile(r"PPG_GREEN=\s*(-?\d+(?:\.\d+)?)")
 _RE_ACC = re.compile(r"SACC_MS2=\s*\[([-\d.e+, ]+)\]")
@@ -59,6 +59,7 @@ def parse_udp_line(raw: str) -> dict | None:
     }
 
 def run(host: str = "0.0.0.0", port: int = 5005) -> None:
+    # Create timestamped raw, processed, and packet-dump outputs.
     ts_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     raw_path  = Path(f"raw_{ts_str}.csv")
     proc_path = Path(f"processed_{ts_str}.csv")
@@ -82,6 +83,7 @@ def run(host: str = "0.0.0.0", port: int = 5005) -> None:
     print(f"[receiver] Proc CSV → {proc_path}")
     print(f"[receiver] Raw Dump → {dump_path}")
 
+    # Maintain sliding PPG/ACC windows for preprocessing.
     ppg_buf: deque[int]        = deque(maxlen=WINDOW_SAMPLES)
     acc_buf: deque[list[float]] = deque(maxlen=WINDOW_SAMPLES)
     sample_count = 0
@@ -131,6 +133,7 @@ def run(host: str = "0.0.0.0", port: int = 5005) -> None:
                 acc_buf.append(parsed["acc"])
                 sample_count += 1
 
+                # Process each complete window at the configured step interval.
                 if len(ppg_buf) == WINDOW_SAMPLES and sample_count % STEP_SAMPLES == 0:
                     ppg_arr = np.array(list(ppg_buf), dtype=np.float64)
                     acc_arr = np.array(list(acc_buf), dtype=np.float64)
