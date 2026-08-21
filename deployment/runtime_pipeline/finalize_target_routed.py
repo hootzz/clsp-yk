@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 PAPAGEI_DIM = 512
-# model.py that MATCHES the target-routed checkpoint = local training/core. Override with --model-dir.
+# Load the model definition that matches the target-routed checkpoint.
 DEFAULT_MODEL_DIR = Path(__file__).resolve().parents[2] / "training" / "core"
 
 
@@ -50,7 +50,7 @@ def _clamp01(x: float) -> float:
 
 
 class StateEstimatorTR:
-    """target_routed_direct adapter — the one-line fix the original lacks."""
+    """Inference adapter for the target_routed_direct fusion mode."""
 
     fusion_mode = "target_routed_direct"
 
@@ -73,11 +73,11 @@ class StateEstimatorTR:
             ppg_hidden_dim=256,
             fusion_hidden_dim=256,
             text_init_ckpt=None,
-            text_max_length=text_max_length,          # 64 (contract), not the finalize.py default 96
-            fusion_mode=self.fusion_mode,             # <-- THE FIX (finalize.py omits this)
+            text_max_length=text_max_length,          # Checkpoint contract: 64; legacy default: 96
+            fusion_mode=self.fusion_mode,             # Required by the checkpoint architecture
         ).to(self.device)
         state = _unwrap_state(torch.load(checkpoint, map_location=self.device, weights_only=False))
-        self.model.load_state_dict(state, strict=True)  # succeeds because fusion_mode matches
+        self.model.load_state_dict(state, strict=True)  # Strict loading requires a matching fusion mode
         self.model.eval()
         self.checkpoint = str(checkpoint)
 
