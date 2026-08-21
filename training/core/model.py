@@ -1,16 +1,16 @@
-"""v3 model — MultimodalStateEstimator (self-contained).
+"""MultimodalStateEstimator.
 
-논문 §3.1.3 구조를 보존하되 v3 확장:
-  - per-target heads (valence / arousal / cognitive_load) — partial-label 마스킹과 정합
-  - modality dropout (학습 시 text 또는 ppg 임베딩 확률적 제거) — modality dominance 완화 (THEORETICAL_REVIEW §5.3)
-  - ppg_mask 입력 — PPG 없는 샘플(SWELL 등)은 ppg_z=0 강제
+Key components:
+  - per-target heads for valence, arousal, and cognitive_load
+  - modality dropout to reduce modality dominance during training
+  - ppg_mask to zero PPG representations when PPG is unavailable
 
 Text : DistilBERT[CLS]768 → ProjectionHead(GELU+residual) → 256
 PPG  : frozen offline PaPaGEI-P512 → trainable projection → 256
 
 Fusion modes:
   - concat (legacy/default): strict backward compatibility for old checkpoints
-  - context_prior_quality_gated_ppg_residual (rescue):
+  - context_prior_quality_gated_ppg_residual:
       prediction_t = context_prior_t + ppg_confidence × ppg_residual_t
   - target_routed_direct:
       valence = context-only target branch
@@ -28,7 +28,7 @@ POSTURE_FILM_CATEGORIES = ("lying", "reclining", "standing")
 
 
 class ProjectionHead(nn.Module):
-    """논문 Text Projection: 2×Linear, GELU, dropout, LayerNorm + residual."""
+    """Text projection: 2×Linear, GELU, dropout, LayerNorm, and residual."""
 
     def __init__(self, in_dim: int, out_dim: int, dropout: float = 0.1):
         super().__init__()
@@ -59,13 +59,13 @@ class TextBranch(nn.Module):
         self.max_length = int(max_length)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.encoder = AutoModel.from_pretrained(model_name)
-        # 7-slot 사전학습 인코더 이식 (context7 best.pt의 text_encoder_state)
+        # Optionally initialize the seven-slot pretrained text encoder.
         if init_ckpt:
             import torch as _t
             obj = _t.load(init_ckpt, map_location="cpu", weights_only=False)
             enc_sd = obj["text_encoder_state"] if isinstance(obj, dict) and "text_encoder_state" in obj else obj
             miss, unexp = self.encoder.load_state_dict(enc_sd, strict=False)
-            print(f"[TextBranch] 7-slot 인코더 이식: missing={len(miss)} unexpected={len(unexp)}")
+            print(f"[TextBranch] Loaded 7-slot encoder: missing={len(miss)} unexpected={len(unexp)}")
         self.proj = ProjectionHead(self.encoder.config.hidden_size, projection_dim, dropout)
 
     def forward(self, texts: list[str], device: torch.device) -> torch.Tensor:
@@ -81,7 +81,7 @@ class TextBranch(nn.Module):
 
 
 class PPGBranch(nn.Module):
-    """논문 §3.1.3.5: PaPaGEI(512) → Linear→ReLU→Dropout→Linear→LayerNorm → 256."""
+    """PaPaGEI(512) → Linear→ReLU→Dropout→Linear→LayerNorm → 256."""
 
     def __init__(self, input_dim: int, projection_dim: int, hidden_dim: int = 128, dropout: float = 0.1):
         super().__init__()
@@ -205,7 +205,7 @@ class MultimodalStateEstimator(nn.Module):
                 nn.Linear(projection_dim * 2, fusion_hidden_dim),
                 nn.ReLU(inplace=True),
             )
-            # per-target heads (partial-label 마스킹과 정합)
+            # Per-target heads support partial-label masking.
             self.heads = nn.ModuleDict(
                 {t: nn.Linear(fusion_hidden_dim, 1) for t in TARGETS}
             )
@@ -321,10 +321,10 @@ class MultimodalStateEstimator(nn.Module):
         texts: list[str],
         ppg_features: torch.Tensor,
         device: torch.device,
-        ppg_mask: torch.Tensor | None = None,   # [B] 1=PPG 있음, 0=없음(SWELL 등)
-        modality_dropout: float = 0.0,           # 학습 시 text/ppg 확률적 제거
-        mute_text: bool = False,                 # ablation: text 브랜치 0
-        mute_ppg: bool = False,                  # ablation: ppg 브랜치 0
+        ppg_mask: torch.Tensor | None = None,   # [B] 1=PPG available, 0=unavailable
+        modality_dropout: float = 0.0,           # Random text/PPG removal during training
+        mute_text: bool = False,                 # Ablation: zero the text branch
+        mute_ppg: bool = False,                  # Ablation: zero the PPG branch
         postures: list[str] | tuple[str, ...] | None = None,
     ) -> dict[str, torch.Tensor]:
         # CLSP consumes clean projected embeddings. Modality dropout and
@@ -365,7 +365,7 @@ class MultimodalStateEstimator(nn.Module):
             device=device,
             dtype=ppg_features_clean.dtype,
         )
-        # PPG 결측 샘플은 임베딩 0
+        # Zero the effective PPG representation when PPG is unavailable.
         if ppg_mask is not None:
             quality_gate = ppg_mask.to(
                 device=device,
@@ -386,14 +386,14 @@ class MultimodalStateEstimator(nn.Module):
             else ppg_z_clean
         )
 
-        # ablation 스위치 (PPG/text 기여도 측정용)
+        # Ablation switches for measuring modality contribution.
         if mute_text:
             text_z = text_z * 0.0
         if mute_ppg:
             ppg_z = ppg_z * 0.0
             quality_gate = quality_gate * 0.0
 
-        # modality dropout (둘 다 죽이지는 않음)
+        # Modality dropout never drops both modalities simultaneously.
         if self.training and modality_dropout > 0.0:
             B = text_z.size(0)
             drop = torch.rand(B, device=device)
