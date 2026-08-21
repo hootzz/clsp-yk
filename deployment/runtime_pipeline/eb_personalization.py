@@ -1,7 +1,7 @@
 """Target-wise empirical-Bayes (EB) output calibration for deployment.
 
-This is the §3.1.3.6 personalization as a runtime output-offset layer: it does
-NOT touch the frozen target-routed model. For each user and target it accumulates
+This runtime output-offset layer does NOT touch the frozen target-routed model.
+For each user and target it accumulates
 the residuals of the first K enrollment labels, forms a shrunk per-user intercept
 
     r_bar   = mean(label - base_prediction) over the K enrollment samples
