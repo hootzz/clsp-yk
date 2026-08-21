@@ -1,59 +1,56 @@
 # ppg
 
-
-## 파일 구성
+## Files
 
 - `receiver.py`
-  - Galaxy Watch UDP 데이터 수신
-  - `raw_*.csv` 저장
-  - `processed_*.csv` 저장
-  - `dump_*.txt` 저장
+  - Receives Galaxy Watch UDP data
+  - Saves `raw_*.csv`
+  - Saves `processed_*.csv`
+  - Saves `dump_*.txt`
 
 - `pipeline.py`
-  - `receiver.py` 내부에서 호출
-  - PPG 전처리 수행
-  - PaPaGEI 입력 형태인 1250-sample window 생성
+  - Called internally by `receiver.py`
+  - Performs PPG preprocessing
+  - Generates 1250-sample windows in the input format required by PaPaGEI
 
-- `papagei-s, papagei-p.py` - embedding 추출만 진행
-  - `processed_*.csv` 로드
-  - PaPaGEI 모델 로드
-  - embedding 추출
-  - `.npz` 파일로 저장
- 
-    
+- `papagei-s, papagei-p.py` — embedding extraction only
+  - Loads `processed_*.csv`
+  - Loads the PaPaGEI model
+  - Extracts embeddings
+  - Saves them to `.npz` files
 
-## PaPaGEI 설치
+## PaPaGEI installation
 
-- PaPaGEI repository 다운로드
+- Clone the PaPaGEI repository
 
 ```bash
 git clone https://github.com/Nokia-Bell-Labs/papagei-foundation-model.git
 ```
 
-- PaPaGEI 폴더로 이동
+- Move into the PaPaGEI folder
 
 ```bash
 cd papagei-foundation-model
 ```
 
-- conda 환경 생성
+- Create a conda environment
 
 ```bash
 conda create -n papagei_env python=3.10
 conda activate papagei_env
 ```
 
-- dependency 설치
+- Install dependencies
 
 ```bash
 pip install -r requirements.txt
 pip install pyPPG==1.0.41
 ```
 
-## Weight 준비
+## Prepare weights
 
-- PaPaGEI weight 다운로드
-- `weights/` 폴더에 저장
+- Download the PaPaGEI weights
+- Save them in the `weights/` folder
 
 ```text
 weights/papagei_p.pt
@@ -61,20 +58,20 @@ weights/papagei_s.pt
 ```
 
 - `papagei_p.pt`
-  - `MODEL_TYPE = "p"`일 때 사용
+  - Used when `MODEL_TYPE = "p"`
 
 - `papagei_s.pt`
-  - `MODEL_TYPE = "s"`일 때 사용
+  - Used when `MODEL_TYPE = "s"`
 
-## Receiver 실행
+## Run receiver
 
-- Watch 데이터 수신
+- Receive Watch data
 
 ```bash
 python receiver.py --port 5005
 ```
 
-- 실행 후 생성 파일
+- Files generated after execution
 
 ```text
 raw_YYYYMMDD_HHMMSS.csv
@@ -82,25 +79,25 @@ processed_YYYYMMDD_HHMMSS.csv
 dump_YYYYMMDD_HHMMSS.txt
 ```
 
-- embedding 시에는 `processed_*.csv`만 사용
+- Only `processed_*.csv` is used for embedding extraction
 
-## Embedding 실행
+## Run embedding extraction
 
-- `papagei-p, papagei-s` 상단 경로 수정
+- Update the paths at the top of `papagei-p` and `papagei-s`
 
-- 실행
+- Run
 
 ```bash
 python papagei-p.py
-혹은
+or
 python papagei-s.py
 ```
 
 ## Output
 
-- `OUTPUT`에 지정한 `.npy` 파일 생성
+- Generates the `.npy` file specified by `OUTPUT`
 
-- 저장 값
+- Stored value
 
 ```text
 embeddings
@@ -110,18 +107,8 @@ embeddings
   - PaPaGEI embedding
   - shape: `(N, 512)`
 
-## 데이터 
+## Data
 
-- `processed_*.csv` - 전처리 완료
-- `raw_*.csv` - pipeline 실행 전
-- `dump_*.txt` - 원본 raw
-
-
-## 데이터 
-
-- `raw_20260414_191218.csv` - 팔 강하게 흔들면서 수집
-- `raw_20260414_190911.csv`	- 가만히 있다가 약간씩 흔들면서 수집
-- `raw_20260413_113425.csv` - 보행하며 수집
-
-추가적으로 필요한 데이터 있으면 바로 수집해서 넣어 두도록 하겠습니다!
-- 
+- `processed_*.csv` — preprocessed data
+- `raw_*.csv` — data before running the pipeline
+- `dump_*.txt` — original raw dump
