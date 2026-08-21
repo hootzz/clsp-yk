@@ -1,13 +1,13 @@
 """
-merge.py — 워치(PPG/ACC) + 폰/PC(digital) → 통합 datastream.jsonl  (SCHEMA.md [A-2])
+Merge watch PPG/ACC data with phone/PC digital events into datastream.jsonl.
 
-각 10초 윈도우마다 한 줄(= memory object):
+Each 10-second window produces one record:
   { timestamp, window, user_state{physical,social,digital}, text_context, ppg, measures }
-  - text_context : physical+social+digital → GPT-4o-mini 영어 문장 (text_context.py)
-  - ppg          : 모델 신호 입력 (1250샘플)
-  - measures     : cognitive_load·valence·arousal = null (모델이 채움)
+  - text_context: physical + social + digital context rendered by text_context.py
+  - ppg: 1250-sample model input
+  - measures: cognitive_load, valence, and arousal initialized to null
 
-사용:
+Usage:
   python merge.py \
       --processed Data_files/ppg/processed_XXXX.csv \
       --raw       Data_files/ppg/raw_XXXX.csv \
@@ -24,30 +24,28 @@ import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-# ── text_context.py, digital.py 임포트 ─────────────────────
+# Local context modules.
 sys.path.append(str(Path(__file__).parent / "state_estimation_mvp"))
 sys.path.append(str(Path(__file__).parent / "context"))
 
 from text_context import build_text
 from digital import _extract_valid_events, summarize_events
 
-# ──────────────────────────────────────────────
-# 설정 (CONFIG)
-# ──────────────────────────────────────────────
-WINDOW_MS      = 10_000      # 윈도우 10초
-TARGET_SAMPLES = 1250        # 125Hz × 10s
+# Configuration.
+WINDOW_MS      = 10_000      # 10-second window
+TARGET_SAMPLES = 1250        # 125 Hz × 10 s
 
-# 안드로이드 로그 timestamp에 타임존이 없음 → KST(+9)로 간주
+# Treat timezone-naive Android timestamps as UTC+9.
 ANDROID_TZ_OFFSET_HOURS = 9
 
-# ACC motion_level(m/s²) → movement 라벨 (우리 state_schema.py 어휘 기준)
-MOVE_SEDENTARY_MAX = 0.3     # 이하 → sedentary
-MOVE_LIGHT_MAX     = 1.5     # 이하 → light
-MOVE_MODERATE_MAX  = 4.0     # 이하 → moderate, 초과 → vigorous
+# Map ACC motion level (m/s²) to movement labels.
+MOVE_SEDENTARY_MAX = 0.3     # sedentary threshold
+MOVE_LIGHT_MAX     = 1.5     # light threshold
+MOVE_MODERATE_MAX  = 4.0     # moderate threshold; above this is vigorous
 
-DEFAULT_POSTURE = None       # 워치 ACC로 추정 안 함 → null
+DEFAULT_POSTURE = None       # Posture is not inferred from watch ACC.
 
-SOCIAL_ENGAGEMENT        = "low"   # 우리 state_schema.py 어휘 기준
+SOCIAL_ENGAGEMENT        = "low"
 SOCIAL_DENSITY           = "0"
 GRAVITY = 9.81
 UTC = timezone.utc
@@ -57,7 +55,7 @@ def to_iso(ms: int) -> str:
     return datetime.fromtimestamp(ms / 1000, tz=UTC).isoformat().replace("+00:00", "Z")
 
 
-# ── 1. 워치 PPG 윈도우 (processed_*.csv) ────────
+# Load processed PPG windows.
 def load_ppg_windows(path: Path) -> list[dict]:
     out = []
     with open(path, newline="", encoding="utf-8") as f:
@@ -80,7 +78,7 @@ def load_ppg_windows(path: Path) -> list[dict]:
     return out
 
 
-# ── 2. 워치 ACC (raw_*.csv) → movement 라벨 ─────
+# Load watch ACC and derive movement labels.
 def load_acc(path: Path) -> list[tuple[int, float]]:
     out = []
     with open(path, newline="", encoding="utf-8") as f:
@@ -112,7 +110,7 @@ def physical_state(start_ms: int, end_ms: int, acc: list[tuple[int, float]]) -> 
     return {"posture": DEFAULT_POSTURE, "movement": mv, "motion_level": round(motion, 3)}
 
 
-# ── 3. 폰/PC digital 이벤트 (events_*.jsonl) ────
+# Load phone/PC digital events.
 def load_raw_events(paths: list[Path]) -> list[dict]:
     events = []
     for p in paths:
@@ -149,7 +147,7 @@ def digital_state(start_ms: int, end_ms: int, valid_events: list[dict]) -> dict:
     }
 
 
-# ── 4. text_context ──────────────────────────────
+# Build text context.
 def build_text_context(phys: dict, soc: dict, digi: dict) -> str:
     context = {
         "posture":                     phys.get("posture") or "sitting",
@@ -164,7 +162,7 @@ def build_text_context(phys: dict, soc: dict, digi: dict) -> str:
     return build_text(context)
 
 
-# ── 5. 합치기 ───────────────────────────────────
+# Merge streams.
 def merge(windows, acc, valid_events):
     rows = []
     for w in windows:
@@ -187,9 +185,9 @@ def merge(windows, acc, valid_events):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--processed", required=True, type=Path, help="워치 processed_*.csv")
-    ap.add_argument("--raw",       type=Path, default=None,  help="워치 raw_*.csv (movement 라벨용)")
-    ap.add_argument("--digital",   nargs="+", type=Path, default=[], help="폰/PC events_*.jsonl")
+    ap.add_argument("--processed", required=True, type=Path, help="watch processed_*.csv")
+    ap.add_argument("--raw",       type=Path, default=None,  help="watch raw_*.csv for movement labels")
+    ap.add_argument("--digital",   nargs="+", type=Path, default=[], help="phone/PC events_*.jsonl")
     ap.add_argument("--out",       type=Path, default=Path("datastream.jsonl"))
     args = ap.parse_args()
 
@@ -200,7 +198,7 @@ def main():
     valid_events = _extract_valid_events(raw_events) if raw_events else []
 
     if not windows:
-        sys.exit("[merge] PPG 윈도우 없음. processed 파일 확인.")
+        sys.exit("[merge] No PPG windows found. Check the processed file.")
 
     rows = merge(windows, acc, valid_events)
     with open(args.out, "w", encoding="utf-8") as f:
@@ -210,15 +208,15 @@ def main():
     n      = len(rows)
     n_move = sum(1 for r in rows if r["user_state"]["physical"]["movement"] is not None)
     n_digi = sum(1 for r in rows if r["user_state"]["digital"]["usage"] is not None)
-    print(f"[merge] 통합 완료 → {args.out}")
-    print(f"  윈도우(row) 수   : {n}")
-    print(f"  워치 시간대       : {to_iso(windows[0]['start_ms'])} ~ {to_iso(windows[-1]['end_ms'])}")
-    print(f"  movement 채워짐   : {n_move}/{n}")
-    print(f"  digital  채워짐   : {n_digi}/{n}")
+    print(f"[merge] Merge complete → {args.out}")
+    print(f"  Windows (rows)    : {n}")
+    print(f"  Watch time range  : {to_iso(windows[0]['start_ms'])} ~ {to_iso(windows[-1]['end_ms'])}")
+    print(f"  Movement available: {n_move}/{n}")
+    print(f"  Digital available : {n_digi}/{n}")
     if acc and n_move == 0:
-        print("  ⚠ raw(ACC)가 워치 윈도우 시간대와 안 겹침")
+        print("  Warning: raw ACC does not overlap the watch window time range.")
     if raw_events and n_digi == 0:
-        print("  ⚠ digital이 워치 윈도우 시간대와 안 겹침 → 같은 시간대 동시 기록 필요")
+        print("  Warning: digital events do not overlap the watch window time range.")
 
 
 if __name__ == "__main__":
