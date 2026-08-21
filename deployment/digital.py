@@ -1,16 +1,14 @@
 """
-context/digital.py
+Digital activity summarization for PC and mobile JSONL event logs.
 
-PC(app_switch) / Mobile(app_start+app_close) JSONL 이벤트 파일을 읽어서
-GPT-4o-mini로 digital_summary 문장을 생성하는 모듈.
+PC uses app_switch events. Mobile uses paired app_start/app_close events.
+GPT-4o-mini generates a concise digital activity summary.
 
-사용법:
+Usage:
     from context.digital import summarize_events, match_events_to_window, process_jsonl
 
-    # 파일 전체를 하나의 요약으로 (짧고 통제된 실험용)
     process_jsonl("data/events_20260424.jsonl", "data/events_20260424_summarized.jsonl")
 
-    # PPG window에 해당하는 이벤트 찾아서 요약 (필요시)
     summary = match_events_to_window(
         events=events,
         window_start="2026-04-13T04:47:57+00:00",
@@ -38,7 +36,7 @@ from typing import Any
 from openai import OpenAI
 
 
-# ── GPT 프롬프트 ──────────────────────────────────────────
+# GPT prompt.
 _SYSTEM_PROMPT = (
     "You summarize a user's recent digital activity for an XR personalization system. "
     "Given a list of app package names or executable names, their durations, and page titles, "
@@ -61,7 +59,7 @@ def _get_client() -> OpenAI:
     return _client
 
 
-# ── timestamp 파싱 ────────────────────────────────────────
+# Timestamp parsing.
 def _parse_dt(ts: str) -> datetime:
     dt = datetime.fromisoformat(ts)
     if dt.tzinfo is None:
@@ -69,22 +67,17 @@ def _parse_dt(ts: str) -> datetime:
     return dt
 
 
-# ── 유효한 이벤트 추출 ────────────────────────────────────
+# Valid event extraction.
 def _extract_valid_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
-    PC / Mobile 이벤트에서 유효한 사용 구간만 추출.
+    Extract valid usage intervals from PC and mobile events.
 
-    PC (app_switch):
-      - 같은 app + 같은 timestamp로 dur=0.0 / dur>0 쌍 확인
-      - 사용 구간 = timestamp - duration ~ timestamp
-
-    Mobile (app_start / app_close):
-      - 같은 app의 app_start → app_close 쌍 확인
-      - 사용 구간 = app_start.timestamp ~ app_close.timestamp
+    PC app_switch events are paired by app and timestamp.
+    Mobile app_start/app_close events are paired by app.
     """
     valid: list[dict[str, Any]] = []
 
-    # ── PC: app_switch ────────────────────────────────────
+    # PC app_switch events.
     pc_events = [e for e in events if e.get("event_type") == "app_switch"]
 
     pc_groups: dict[tuple[str, str], list[dict]] = {}
@@ -110,7 +103,7 @@ def _extract_valid_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "source":     "pc",
             })
 
-    # ── Mobile: app_start / app_close ────────────────────
+    # Mobile app_start/app_close events.
     pending_starts: dict[str, datetime] = {}
 
     for e in sorted(events, key=lambda x: x.get("timestamp", "")):
@@ -137,16 +130,13 @@ def _extract_valid_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return valid
 
 
-# ── 이벤트 리스트 → llm_summary ──────────────────────────
+# Event list to LLM summary.
 def summarize_events(valid_events: list[dict[str, Any]]) -> str:
-    """
-    유효한 이벤트 리스트를 받아서 llm_summary 문장을 반환.
-    앱 이름은 raw 이름 그대로 GPT에 넘기고 GPT가 직접 변환.
-    """
+    """Generate an LLM summary from valid events."""
     if not valid_events:
         return ""
 
-    # 앱별 총 사용 시간 집계
+    # Aggregate usage duration by app.
     app_durations: dict[str, float] = {}
     for e in valid_events:
         app = e["app"]
@@ -160,7 +150,7 @@ def summarize_events(valid_events: list[dict[str, Any]]) -> str:
         for app, dur in sorted(app_durations.items(), key=lambda x: -x[1])
     ]
 
-    # PC 이벤트의 title 추가 (중복 제거, 최대 3개)
+    # Add unique page titles from PC events.
     pc_events = [e for e in valid_events if e.get("source") == "pc"]
     if pc_events:
         titles = list({e["title"] for e in pc_events if e.get("title")})
@@ -186,16 +176,13 @@ def summarize_events(valid_events: list[dict[str, Any]]) -> str:
     return response.choices[0].message.content.strip()
 
 
-# ── PPG window 기준 이벤트 매칭 ───────────────────────────
+# Match events to a PPG window.
 def match_events_to_window(
     events: list[dict[str, Any]],
     window_start: str,
     window_end: str,
 ) -> str:
-    """
-    PPG window (window_start ~ window_end) 구간과 겹치는 이벤트를 찾아서
-    llm_summary를 반환. 겹치는 이벤트 없으면 빈 문자열 반환.
-    """
+    """Summarize events overlapping the specified PPG window."""
     w_start = _parse_dt(window_start)
     w_end   = _parse_dt(window_end)
 
@@ -212,15 +199,12 @@ def match_events_to_window(
     return summarize_events(matched)
 
 
-# ── 배치 처리: 전체 파일을 하나의 요약으로 ───────────────
+# Batch processing.
 def process_jsonl(
     input_path: str | Path,
     output_path: str | Path,
 ) -> None:
-    """
-    JSONL 파일 전체를 읽어서 하나의 llm_summary로 저장.
-    짧고 통제된 실험 환경에서 전체 세션이 하나의 맥락이라는 가정.
-    """
+    """Summarize an entire JSONL session into a single llm_summary."""
     input_path  = Path(input_path)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -239,7 +223,7 @@ def process_jsonl(
         return
 
     summary = summarize_events(valid_events)
-    print(f"요약: {summary}")
+    print(f"Summary: {summary}")
 
     record = {
         "device_type": raw_events[0].get("device_type", "unknown"),
@@ -254,7 +238,7 @@ def process_jsonl(
     print(f"Saved: {output_path}")
 
 
-# ── CLI ───────────────────────────────────────────────────
+# CLI.
 if __name__ == "__main__":
     import argparse
 
