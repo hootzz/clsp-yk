@@ -26,7 +26,7 @@ def _json_sha256(value: Any) -> str:
 
 
 def build_input_contract(cfg: dict) -> dict:
-    """Return the data/split/model contract that C0 and E2 must share."""
+    """Return the data/split/model contract shared by training and evaluation."""
     manifest = Path(cfg["paths"]["manifest_csv"]).resolve()
     if not manifest.is_file():
         raise FileNotFoundError(f"manifest was not found: {manifest}")
