@@ -1,6 +1,6 @@
-"""End-to-end deployment runner for the FINAL target-routed model.
+"""End-to-end deployment runner for the final target-routed model.
 
-Wires the pieces that the existing finalize.py lineages do NOT support:
+Runs the target-routed deployment path:
 
     merge output (datastream.jsonl)
       -> original-7 context rendering   (context_text_original7)
@@ -10,8 +10,8 @@ Wires the pieces that the existing finalize.py lineages do NOT support:
       -> V / A / C in [0,1]
       -> final_datastream.jsonl
 
-It consumes the same `datastream.jsonl` schema produced by the collectors->merge front-end (fields: user_state, ppg[1250]),
-so it drops into the existing deployment branch by swapping only the model back-end.
+It consumes the `datastream.jsonl` schema produced by the collectors->merge front-end
+(fields: user_state, ppg[1250]).
 
 Modes:
 - Default (no --calibration): K=0 zero-shot population prediction.
@@ -79,7 +79,7 @@ def main() -> None:
     ap.add_argument("--papagei-root", default=None)
     ap.add_argument("--papagei-ckpt", default=None)
     ap.add_argument("--limit", type=int, default=0)
-    # --- optional EB personalization (K>0). Omit for K=0 population. ---
+    # Optional EB personalization (K>0). Omit for K=0 population.
     ap.add_argument("--calibration", default=None, help="EB variance-component bundle (JSON)")
     ap.add_argument("--enrollment", default=None, help="enrollment JSONL (records + `label`)")
     ap.add_argument("--enroll-k", type=int, default=4)
@@ -90,7 +90,7 @@ def main() -> None:
     enc = _load_papagei(model_dir, args.papagei_root, args.papagei_ckpt)
     est = StateEstimatorTR(args.ckpt, model_dir=model_dir, device="cpu")
 
-    # optional EB layer
+    # Optional EB layer.
     personalizer = None
     if args.calibration:
         cal = json.loads(Path(args.calibration).read_text(encoding="utf-8"))
