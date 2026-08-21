@@ -1,39 +1,39 @@
 # FINAL RESULTS — Full Result Dashboard
 
-작성일: 2026-08-03  
-최종 후보: **B2 Target-routed**
-— Valence는 frozen Context-only, Arousal과 Cognitive load는 target-specific direct Context+PPG, 개인화는 선택적 EB output offset.
+Date: 2026-08-03  
+Final candidate: **B2 Target-routed**
+— Valence uses a frozen Context-only path; Arousal and Cognitive load use target-specific direct Context+PPG; personalization is an optional EB output offset.
 
-## 0. 평가 조건과 baseline
+## 0. Evaluation conditions and baselines
 
-| 표기 | 입력·구조 | 역할 |
+| Label | Input / architecture | Role |
 |---|---|---|
-| **PPG-only** | frozen PaPaGEI-P embedding만 사용 | 생리 modality 단독 진단 기준선 |
-| **B0 Context-only** | title-level Context만 사용 | **B1/B2의 공식 matched population baseline** |
-| **B1 Uniform Context+PPG** | V/A/C 모두 residual-free direct Context+PPG | 모든 타깃에 PPG를 넣는 균일 융합 대조군 |
-| **B2 Target-routed** | V=고정 Context-only, A/C=target-specific direct Context+PPG | 최종 아키텍처 후보 |
-| **M0 Base** | 개인화하지 않은 B2 query prediction | 개인화 비교 기준선 |
-| **M2 EB-personalized** | B2 prediction + target-wise shrunk EB offset | K-shot inference-time 개인화 |
+| **PPG-only** | frozen PaPaGEI-P embeddings only | physiological-modality-only diagnostic baseline |
+| **B0 Context-only** | title-level Context only | **official matched population baseline for B1/B2** |
+| **B1 Uniform Context+PPG** | residual-free direct Context+PPG for V/A/C | uniform-fusion control that adds PPG to all targets |
+| **B2 Target-routed** | V=fixed Context-only, A/C=target-specific direct Context+PPG | final architecture candidate |
+| **M0 Base** | non-personalized B2 query prediction | personalization comparison baseline |
+| **M2 EB-personalized** | B2 prediction + target-wise shrunk EB offset | K-shot inference-time personalization |
 
-### 데이터셋과 평가 역할
+### Datasets and evaluation roles
 
-| 구분 | 데이터셋 | 타깃 | 참가자 | 역할 |
+| Category | Dataset | Target | Participants | Role |
 |---|---|---|---:|---|
 | Source held-out | CASE | V/A | 11 | participant-disjoint source evaluation |
 | Source held-out | EEVR | V/A | 14 | participant-disjoint source evaluation |
 | Source held-out | MAUS | C | 8 | participant-disjoint source evaluation |
 | Strict external zero-shot | WESAD (E4) | V/A | 15 | unseen affect dataset |
 | Strict external zero-shot | CogWear (E4/Galaxy) | C | 18 | unseen objective rest-vs-Stroop dataset |
-| External diagnostic | EmoWear (seated/walk) | V/A | 48 | motion/device diagnostic; walk는 seated와 동일 trial SAM 사용 |
-| External diagnostic | VRFS (flat-screen/VR) | V/A | 33 | condition-level proxy labels; 개인 SAM과 PPG를 직접 join할 수 없음 |
+| External diagnostic | EmoWear (seated/walk) | V/A | 48 | motion/device diagnostic; walk uses the same trial-level SAM labels as seated |
+| External diagnostic | VRFS (flat-screen/VR) | V/A | 33 | condition-level proxy labels; participant-level SAM cannot be directly joined with PPG |
 
-절대 성능의 CCC는 3개 seed의 mean±population SD이며 Accuracy·BA·Macro-F1은 seed 평균이다. Source와 affect 데이터의 분류 임계값은 0.625, CogWear는 0.5다. Paired effect는 참가자 단위 bootstrap mean과 95% CI(2,000 resamples)다. 굵은 절대값은 동일 데이터셋·타깃에서 가장 높은 값이며, 굵은 차이값은 CI가 0을 제외한다.
+Absolute CCC values are reported as mean±population SD across three seeds, while Accuracy, BA, and Macro-F1 are seed averages. The classification threshold is 0.625 for source and affect datasets and 0.5 for CogWear. Paired effects are participant-level bootstrap means with 95% CIs (2,000 resamples). Bold absolute values indicate the highest value for the same dataset and target; bold differences indicate CIs that exclude zero.
 
 ---
 
-## 1. Source held-out — 공식 통합 결과
+## 1. Source held-out — official aggregate results
 
-V/A는 CASE와 EEVR 평가 행을 합친 값이고, C는 MAUS 값이다. `known-content, unseen-participant` 평가이며 완전한 외부 zero-shot은 아니다.
+V/A aggregates the CASE and EEVR evaluation rows, while C is evaluated on MAUS. This is a `known-content, unseen-participant` evaluation and is not a fully external zero-shot setting.
 
 | Evaluation data | Target | Condition | CCC mean±SD | Accuracy | BA | Macro-F1 |
 |---|---|---|---:|---:|---:|---:|
@@ -50,9 +50,9 @@ V/A는 CASE와 EEVR 평가 행을 합친 값이고, C는 MAUS 값이다. `known-
 |  |  | B1 Uniform Context+PPG | 0.485±0.166 | 0.778 | 0.605 | 0.517 |
 |  |  | **B2 Target-routed** | 0.492±0.207 | 0.815 | 0.782 | 0.624 |
 
-† PPG-only C의 Accuracy 0.852는 BA 0.500과 함께 나타난 다수 클래스 예측의 영향이므로 성능 우위로 해석하지 않는다.
+† The PPG-only C Accuracy of 0.852 occurs alongside BA=0.500 and is driven by majority-class prediction; it should not be interpreted as superior performance.
 
-### 1.1 Source 데이터셋별 절대 성능
+### 1.1 Absolute performance by source dataset
 
 | Dataset·Target | Condition | CCC mean±SD | Accuracy | BA | Macro-F1 |
 |---|---|---:|---:|---:|---:|
@@ -87,13 +87,13 @@ V/A는 CASE와 EEVR 평가 행을 합친 값이고, C는 MAUS 값이다. `known-
 | EEVR · V | 14 | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] |
 | MAUS · C | 8 | −0.142 [−0.327, 0.011] | 0.000 [−0.146, 0.146] | −0.060 [−0.229, 0.073] | −0.090 [−0.302, 0.075] |
 
-Source에서는 B2가 B0의 A/C CCC를 이기지 못했다. Valence의 0 차이는 성능 추정이 아니라 B2가 B0의 frozen Valence 경로를 그대로 사용한다는 구조적 불변식이다.
+On the source datasets, B2 did not outperform B0 on A/C CCC. The zero Valence difference is a structural invariant, not a performance estimate, because B2 uses the frozen B0 Valence path unchanged.
 
 ---
 
 ## 2. Strict external zero-shot — WESAD·CogWear
 
-모든 checkpoint는 frozen이며 외부 라벨을 이용한 업데이트·threshold 선택·checkpoint 선택·fusion 선택이 없다.
+All checkpoints are frozen, with no updates, threshold selection, checkpoint selection, or fusion selection using external labels.
 
 | Dataset·Target | Condition | CCC mean±SD | Accuracy | BA | Macro-F1 |
 |---|---|---:|---:|---:|---:|
@@ -123,13 +123,13 @@ Source에서는 B2가 B0의 A/C CCC를 이기지 못했다. Valence의 0 차이�
 | CogWear E4 · C | 18 | **+0.189 [0.126, 0.258]** | **+0.069 [0.014, 0.130]** | **+0.069 [0.009, 0.130]** | **+0.118 [0.048, 0.185]** |
 | CogWear Galaxy · C | 18 | **+0.078 [0.034, 0.127]** | −0.019 [−0.074, 0.032] | −0.019 [−0.074, 0.032] | +0.027 [−0.023, 0.080] |
 
-WESAD A와 CogWear E4 C에서는 B2의 paired 증분이 네 지표에서 모두 양수였고 CI가 0을 제외했다. CogWear Galaxy C에서는 CCC 증분만 유의했다. 외부 절대 CCC는 낮으므로 이를 높은 배포 정확도로 표현하지 않는다.
+For WESAD A and CogWear E4 C, B2 showed positive paired gains across all four metrics, with CIs excluding zero. For CogWear Galaxy C, only the CCC gain was significant. Because absolute external CCC values remain low, these results should not be presented as high deployment accuracy.
 
 ---
 
 ## 3. External diagnostic — EmoWear
 
-EmoWear walk는 seated와 동일한 trial-level SAM label을 사용하므로 독립 affect ground truth가 아니라 motion/device diagnostic이다. 또한 개발 과정에서 관찰된 데이터이므로 순수 확증 결과로 사용하지 않는다.
+EmoWear walk uses the same trial-level SAM labels as seated and therefore serves as a motion/device diagnostic rather than an independent affect ground truth. It was also observed during development and is not treated as a purely confirmatory result.
 
 | Domain·Target | Condition | CCC mean±SD | Accuracy | BA | Macro-F1 |
 |---|---|---:|---:|---:|---:|
@@ -159,13 +159,13 @@ EmoWear walk는 seated와 동일한 trial-level SAM label을 사용하므로 독
 | Walk · A | 48 | +0.014 [−0.008, 0.037] | **−0.054 [−0.078, −0.031]** | −0.008 [−0.029, 0.012] | **+0.064 [0.044, 0.083]** |
 | Walk · V | 48 | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] | 0.000 [0.000, 0.000] |
 
-EmoWear는 Arousal CCC의 일관된 증분을 보이지 않았고 Accuracy와 Macro-F1의 방향도 충돌했다.
+EmoWear did not show a consistent Arousal CCC gain, and the directions of Accuracy and Macro-F1 were also inconsistent.
 
 ---
 
 ## 4. External diagnostic — VRFS
 
-VRFS는 생리 session과 개인별 SAM row를 직접 대응할 수 없다. 아래 두 label policy 모두 condition-level proxy이며 논문의 확증 표가 아니라 민감도 진단으로만 사용한다.
+VRFS does not allow direct matching between physiological sessions and participant-level SAM rows. Both label policies below are condition-level proxies and are used only as sensitivity diagnostics rather than as confirmatory paper results.
 
 ### 4.1 Planned-quadrant labels
 
@@ -209,13 +209,13 @@ VRFS는 생리 session과 개인별 SAM row를 직접 대응할 수 없다. 아�
 |  | B1 Uniform Context+PPG | 0.078±0.130 | 0.525 | 0.525 | 0.449 |
 |  | **B2 Target-routed** | **0.115±0.087** | 0.495 | 0.500 | 0.331 |
 
-두 proxy policy의 순위가 달라지므로 VRFS에서 아키텍처 우위를 주장하지 않는다.
+Because the rankings differ across the two proxy policies, no architecture superiority is claimed on VRFS.
 
 ---
 
 ## 5. Chronological EB personalization
 
-M0와 M2는 각 참가자의 동일 query row에서 평가한다. support는 첫 K개 시간순 label만 사용하고, variance component는 validation participant에서만 추정한다. 절대값은 seed-level query metric이고 ΔCCC CI는 participant-level paired bootstrap이므로 표시된 절대 CCC 차이와 bootstrap mean lift가 정확히 같을 필요는 없다.
+M0 and M2 are evaluated on identical query rows for each participant. Support uses only the first K chronologically ordered labels, and variance components are estimated from validation participants only. Absolute values are seed-level query metrics, whereas ΔCCC CIs come from participant-level paired bootstrap estimates; therefore, the displayed absolute CCC difference and bootstrap mean lift need not be identical.
 
 | Dataset | Target | K | CCC M0→M2 | Accuracy M0→M2 | BA M0→M2 | Macro-F1 M0→M2 | participant-mean ΔCCC [95% CI] |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -226,6 +226,6 @@ M0와 M2는 각 참가자의 동일 query row에서 평가한다. support는 첫
 | CASE | V | 4 | 0.636→0.639 | 0.796→0.758 | 0.796→0.730 | 0.754→0.704 | **+0.003 [0.001, 0.007]** |
 | EEVR | V | 4 | 0.324→0.341 | 0.694→0.681 | 0.631→0.620 | 0.631→0.618 | −0.000 [−0.009, 0.008] |
 
-주 개인화 결과는 **EEVR Arousal K=4의 continuous CCC lift**다. 같은 조건의 Accuracy·BA·Macro-F1은 개선되지 않았으므로 개인화가 모든 지표나 타깃을 높인다고 주장하지 않는다. CASE V의 유의한 수치는 +0.003으로 매우 작고 분류 지표가 감소했다.
+The primary personalization result is the **continuous CCC lift for EEVR Arousal at K=4**. Accuracy, BA, and Macro-F1 do not improve under the same condition, so personalization is not claimed to improve every metric or target. The significant CASE V effect is only +0.003, and its classification metrics decrease.
 
 ---
